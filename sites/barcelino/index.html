@@ -350,6 +350,75 @@ body{padding-bottom:34px}
   .rail-tabs{justify-content:flex-start;gap:22px}
 }
 
+
+/* ============================================================
+   PRE-TRY-ON CONSENT
+   Same overlay language as the studio (centred card over the
+   blurred storefront) so consent reads as the first step of one
+   flow rather than a second application. A full-screen takeover
+   would break the "their site is still there" effect that makes
+   the whole thing feel embedded.
+   ============================================================ */
+.consent-scrim{position:fixed;inset:0;z-index:110;background:rgba(168,165,161,.42);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  display:none;align-items:center;justify-content:center;padding:20px;
+  opacity:0;transition:opacity .38s cubic-bezier(.4,0,.2,1)}
+.consent-scrim.show{display:flex}
+.consent-scrim.in{opacity:1}
+.consent{background:#fff;width:100%;max-width:520px;max-height:94vh;overflow:auto;
+  padding:38px 40px 30px;position:relative;box-shadow:0 26px 74px rgba(0,0,0,.18);
+  transform:translateY(12px) scale(.995);opacity:0;
+  transition:transform .48s cubic-bezier(.22,1,.36,1),opacity .4s ease-out}
+.consent-scrim.in .consent{transform:none;opacity:1}
+.consent .close{position:absolute;top:22px;right:22px;background:none;border:0;padding:6px;
+  color:#8d8983;line-height:0;transition:color .22s}
+.consent .close:hover{color:#1c1a18}
+.consent .close svg{width:15px;height:15px;stroke:currentColor;stroke-width:1.4;fill:none}
+
+.consent h2{font-family:var(--font-display);font-size:21px;font-weight:400;
+  text-transform:uppercase;letter-spacing:.14em;margin:0;text-align:center;color:#1c1a18}
+.consent .sub{font-size:13px;color:#86827d;margin:8px 0 0;text-align:center}
+.consent .hr{width:40px;height:1px;background:var(--gold);margin:20px auto 24px}
+.consent p.body{font-size:13px;line-height:1.85;color:#4a4640;margin:0 0 16px}
+.consent p.age{font-size:12.5px;line-height:1.7;color:#6e6a65;margin:0 0 22px;
+  padding:13px 16px;background:var(--cream)}
+
+.consent .checks{border-top:1px solid var(--border);padding-top:20px;
+  display:flex;flex-direction:column;gap:16px}
+.chk{display:flex;gap:12px;align-items:flex-start;cursor:pointer;font-size:12.5px;
+  line-height:1.65;color:#3a3630}
+.chk input{position:absolute;opacity:0;width:0;height:0}
+.chk .box{width:17px;height:17px;flex:none;margin-top:1px;border:1px solid #bdb8b1;
+  background:#fff;display:flex;align-items:center;justify-content:center;transition:.18s}
+.chk .box svg{width:11px;height:11px;stroke:#fff;fill:none;stroke-width:2.4;
+  opacity:0;transform:scale(.7);transition:.18s}
+.chk:hover .box{border-color:#1c1a18}
+.chk input:checked~.box{background:#1c1a18;border-color:#1c1a18}
+.chk input:checked~.box svg{opacity:1;transform:none}
+.chk input:focus-visible~.box{outline:2px solid var(--gold);outline-offset:2px}
+
+/* Inert by design: these are placeholders in a demo, not the retailer's real
+   legal documents. Marked visually so nobody mistakes them for live policy. */
+.inert{color:#6e6a65;border-bottom:1px dotted #b0aba4;cursor:not-allowed}
+.inert:hover{color:#6e6a65}
+.consent .placeholder-note{font-size:11px;color:#a5a09a;line-height:1.6;margin:14px 0 0}
+
+.consent .go{width:100%;height:52px;margin-top:24px;border:1px solid #1c1a18;
+  background:#1c1a18;color:#fff;font-size:11.5px;font-weight:700;letter-spacing:.15em;
+  transition:background .2s,opacity .2s}
+.consent .go:hover:not(:disabled){background:#332f2b}
+.consent .go:disabled{background:#fff;color:#b5b0a9;border-color:#e0dcd7;cursor:not-allowed}
+.consent .go:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.consent .nudge{font-size:11.5px;color:#a8412f;text-align:center;margin:11px 0 0;
+  opacity:0;transition:opacity .25s}
+.consent .nudge.on{opacity:1}
+.consent .micro{font-size:11px;color:#a5a09a;text-align:center;margin:11px 0 0}
+
+@media(max-width:560px){
+  .consent{padding:30px 22px 22px}
+  .consent h2{font-size:17px}
+}
+
 /* ---------- responsive ---------- */
 @media(max-width:900px){
   .product{grid-template-columns:1fr;gap:28px}
@@ -509,6 +578,47 @@ body{padding-bottom:34px}
   </div>
 </footer>
 
+<!-- ============ PRE-TRY-ON CONSENT ============ -->
+<div class="consent-scrim" id="cScrim">
+ <div class="consent" role="dialog" aria-modal="true" aria-labelledby="cTitle">
+  <button class="close" id="cClose" aria-label="Close">
+    <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+
+  <h2 id="cTitle">Before Your Fitting</h2>
+  <p class="sub">A short note on your photograph.</p>
+  <div class="hr"></div>
+
+  <p class="body">Barcelino's Virtual Try-On uses the photograph you provide to place pieces
+  from the collection on you. Your photograph is sent for processing each time you select a
+  garment, is used only to create your fitting, and is not kept afterwards.</p>
+
+  <p class="age">This service is available to visitors aged 18 and over.</p>
+
+  <div class="checks">
+    <label class="chk">
+      <input type="checkbox" id="c1">
+      <span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span>I consent to my photograph being uploaded and processed to generate virtual
+      try-on looks.</span>
+    </label>
+    <label class="chk">
+      <input type="checkbox" id="c2">
+      <span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span>I am 18 or older and accept the
+      <a class="inert" href="#" onclick="return false" title="Placeholder — not active in this demonstration">Privacy Policy</a> and
+      <a class="inert" href="#" onclick="return false" title="Placeholder — not active in this demonstration">Terms of Use</a>.</span>
+    </label>
+  </div>
+
+  <p class="placeholder-note">This is a concept demonstration by Muse. The policy links above
+  are placeholders and do not open.</p>
+
+  <button class="go" id="cGo" disabled>CONSENT AND CONTINUE</button>
+  <p class="nudge" id="cNudge">Please accept both statements to continue.</p>
+  <p class="micro">Private to you. Not kept.</p>
+ </div>
+</div>
+
 <!-- ============ VIRTUAL TRY-ON STUDIO ============ -->
 <div class="studio-scrim" id="scrim">
  <div class="studio" role="dialog" aria-label="Virtual Try-On">
@@ -546,7 +656,7 @@ body{padding-bottom:34px}
 
       <div class="privacy">
         <svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="9.5" rx="1.6"/><path d="M8.2 10.5V7.8a3.8 3.8 0 017.6 0v2.7"/></svg>
-        <span>Your photo is private and only used for try-on</span>
+        <span>Private to you. Not kept.</span>
       </div>
     </div>
 
@@ -883,12 +993,53 @@ function closeStudio(){
   sc.classList.remove('in');
   setTimeout(()=>{sc.classList.remove('show');document.body.style.overflow='';},420);
 }
+/* ---------------- consent gate ----------------
+   Consent is asked once per session, immediately after any entry point and
+   before the studio, then dismisses straight into it. Storing the answer for
+   the session (not forever) keeps the demo re-showable on a fresh tab, which
+   matters when this is being presented. */
+const CONSENT_KEY='muse.tryon.consent';
+function consented(){ try{ return sessionStorage.getItem(CONSENT_KEY)==='1'; }catch(e){ return false; } }
+function rememberConsent(){ try{ sessionStorage.setItem(CONSENT_KEY,'1'); }catch(e){} }
+
+function openConsent(){
+  const sc=$('cScrim');
+  $('c1').checked=false; $('c2').checked=false;
+  $('cGo').disabled=true; $('cNudge').classList.remove('on');
+  sc.classList.add('show');
+  requestAnimationFrame(()=>sc.classList.add('in'));
+  document.body.style.overflow='hidden';
+  setTimeout(()=>$('c1').focus(),340);
+}
+function closeConsent(then){
+  const sc=$('cScrim');
+  sc.classList.remove('in');
+  setTimeout(()=>{sc.classList.remove('show');document.body.style.overflow='';if(then)then();},380);
+}
+function syncGo(){
+  const ok=$('c1').checked && $('c2').checked;
+  $('cGo').disabled=!ok;
+  if(ok) $('cNudge').classList.remove('on');
+}
+['c1','c2'].forEach(id=>$(id).addEventListener('change',syncGo));
+$('cGo').addEventListener('click',()=>{ rememberConsent(); closeConsent(openStudio); });
+$('cClose').addEventListener('click',()=>closeConsent());
+$('cScrim').addEventListener('click',e=>{ if(e.target===$('cScrim')) closeConsent(); });
+/* A disabled button swallows clicks, so the nudge is armed from the wrapper. */
+$('cGo').parentElement.addEventListener('click',e=>{
+  if(e.target===$('cGo') && $('cGo').disabled) $('cNudge').classList.add('on');
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && $('cScrim').classList.contains('show')) closeConsent();
+});
+
 /* Entry points differ per page (nav item, PDP button, landing CTAs), so bind
-   whatever exists rather than assuming. */
+   whatever exists rather than assuming. All route through the gate. */
+function requestStudio(){ consented() ? openStudio() : openConsent(); }
 document.querySelectorAll('[data-open-studio]').forEach(el=>
-  el.addEventListener('click',e=>{e.preventDefault();openStudio();}));
+  el.addEventListener('click',e=>{e.preventDefault();requestStudio();}));
 ['navTryOn','openTryOn'].forEach(id=>{
-  const el=$(id); if(el) el.addEventListener('click',e=>{e.preventDefault();openStudio();});
+  const el=$(id); if(el) el.addEventListener('click',e=>{e.preventDefault();requestStudio();});
 });
 $('close').addEventListener('click',closeStudio);
 $('scrim').addEventListener('click',e=>{if(e.target===$('scrim'))closeStudio();});
@@ -1018,6 +1169,15 @@ render();
 /* QA hooks (#41): ?studio=1 opens it, ?fitting=1 freezes the veil for capture. */
 (function(){
   const q=new URLSearchParams(location.search);
+  if(q.get('consent')){
+    openConsent();
+    /* ?consent=ready ticks both boxes so the enabled state is screenshottable */
+    if(q.get('consent')==='ready'){
+      setTimeout(()=>{$('c1').checked=true;$('c2').checked=true;syncGo();},420);
+    }
+    return;
+  }
+  /* capture hooks go straight to the studio so screenshots aren't gated */
   if(q.get('fitting')){ openStudio(); setTimeout(()=>veil(true),300); }
   else if(q.get('studio')) openStudio();
 })();

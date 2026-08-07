@@ -21,8 +21,13 @@ tpl = open(f"{site}/landing.template.html").read()
 # whole <style> block: tokens, header, footer, studio — everything shared
 base_css = re.search(r"<style>(.*?)</style>", index, re.S).group(1)
 
-markup = index[index.index("<!-- ============ VIRTUAL TRY-ON STUDIO ============ -->"):
-               index.index("<!-- D4: disclosure")]
+# Start at the CONSENT block, not the studio: the controller binds consent
+# elements unconditionally, so shipping the studio without them throws and
+# takes the whole try-on down on this page.
+START = "<!-- ============ PRE-TRY-ON CONSENT ============ -->"
+if START not in index:
+    START = "<!-- ============ VIRTUAL TRY-ON STUDIO ============ -->"
+markup = index[index.index(START):index.index("<!-- D4: disclosure")]
 
 js = re.search(r"<script>(.*?)</script>\s*</body>", index, re.S).group(1)
 
