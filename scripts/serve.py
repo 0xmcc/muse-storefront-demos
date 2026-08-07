@@ -32,8 +32,22 @@ from generate_tryon import generate_tryon, load_env, to_data_url  # noqa: E402
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Public demo, live generation, real money per call. Cap it per IP.
-RATE_MAX = 12
+# Luxury campaign quality is a prompt problem, not a model problem. This is the
+# house style every generated look is asked for, so results read as editorial
+# photography rather than AI artwork.
+EDITORIAL_NOTES = (
+    "Luxury fashion campaign photography. Full-length three-quarter pose, relaxed and "
+    "confident. Soft directional studio light with gentle falloff, natural skin tones, "
+    "shallow depth of field. Fabric drapes naturally with believable weight and tailoring; "
+    "shoulder seams sit correctly; lapels roll rather than crease. Muted neutral backdrop. "
+    "Preserve the person's exact facial features, hair and complexion. Editorial, "
+    "understated, no visible logos or text."
+)
+
+# Public demo, live generation, real money per call. Cap it per IP (#44).
+# Raised from 12 because the studio pre-styles the rail in the background to make
+# swaps feel instant — one visitor legitimately spends ~9 calls on arrival.
+RATE_MAX = 30
 RATE_WINDOW_S = 600
 _hits = defaultdict(deque)
 _lock = threading.Lock()
@@ -115,7 +129,7 @@ class Handler(SimpleHTTPRequestHandler):
             img = generate_tryon(
                 ppath, gpath, name,
                 category=req.get("category", ""),
-                notes=req.get("notes", "Full-length editorial pose, clean neutral studio background."),
+                notes=req.get("notes", EDITORIAL_NOTES),
                 env=self.env,
             )
         except Exception as e:

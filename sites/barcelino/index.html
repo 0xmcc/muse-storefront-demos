@@ -197,6 +197,128 @@ body{padding-bottom:34px}
 .stub b{font-size:11px;letter-spacing:.09em;color:var(--gold-deep)}
 .stub span{font-size:11.5px;color:#8a8175;max-width:230px;line-height:1.6}
 
+
+/* ============================================================
+   VIRTUAL TRY-ON STUDIO
+   Interaction model borrowed from L'Oreal's virtual try-on; the
+   visual language is Barcelino's own — hairlines instead of cards,
+   whitespace instead of chrome, square corners, Playfair for the
+   one display line, gold used once. Deliberately NOT a sparkle-and-
+   gradient AI panel; the technology is meant to disappear.
+   ============================================================ */
+.studio-scrim{position:fixed;inset:0;z-index:100;background:rgba(28,26,24,.42);
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;padding:22px;
+  opacity:0;transition:opacity .42s cubic-bezier(.4,0,.2,1)}
+.studio-scrim.show{display:flex}
+.studio-scrim.in{opacity:1}
+.studio{background:#fff;width:100%;max-width:1180px;max-height:95vh;overflow:auto;
+  padding:32px 44px 24px;position:relative;
+  transform:translateY(14px) scale(.994);opacity:0;
+  transition:transform .5s cubic-bezier(.22,1,.36,1),opacity .45s ease-out}
+.studio-scrim.in .studio{transform:none;opacity:1}
+.studio .close{position:absolute;top:26px;right:30px;background:none;border:0;padding:6px;
+  color:#9a958d;line-height:0;transition:color .25s}
+.studio .close:hover{color:var(--ink)}
+.studio .close svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.3;fill:none}
+
+.studio-head{text-align:center;margin-bottom:26px}
+.studio-head h2{font-family:var(--font-display);font-size:28px;font-weight:400;
+  letter-spacing:.015em;margin:0 0 14px}
+.studio-head .rule{width:46px;height:1px;background:var(--gold);margin:0 auto}
+
+.slabel{font-size:10px;letter-spacing:.24em;color:#a09a91;text-align:center;margin-bottom:16px}
+
+/* two equal panels — the user stays grounded in their own photo */
+.studio-panes{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:44px;align-items:start}
+.studio-panes>*{min-width:0}
+
+.well{background:var(--cream);overflow:hidden;position:relative;
+  height:clamp(270px,38vh,398px);display:flex;align-items:center;justify-content:center}
+.well img{width:100%;height:100%;object-fit:cover}
+
+/* the generated look: contained so tailoring is never cropped away (#45) */
+.look{width:auto!important;height:100%;max-width:100%;object-fit:contain;
+  opacity:0;transform:scale(1.012);
+  transition:opacity .62s cubic-bezier(.4,0,.2,1),transform 1.1s cubic-bezier(.22,1,.36,1)}
+.look.in{opacity:1;transform:none}
+
+.changerow{margin-top:16px;text-align:center}
+.change{height:44px;padding:0 30px;border:1px solid var(--ink);background:#fff;
+  font-size:11px;font-weight:700;letter-spacing:.16em;transition:.22s}
+.change:hover{background:var(--ink);color:#fff}
+
+.readout{margin-top:18px;padding-top:15px;border-top:1px solid var(--border);
+  display:flex;flex-direction:column;gap:10px}
+.readout div{display:flex;align-items:center;gap:10px;font-size:11.5px;color:#4a4640}
+.readout .mark{width:13px;height:13px;flex:none;stroke:var(--gold);fill:none;stroke-width:1.6}
+.readout em{margin-left:auto;font-style:normal;font-size:10px;letter-spacing:.13em;color:#a09a91}
+
+/* fitting veil — elegance over instrumentation. No percentage, no bar. */
+.fitting{position:absolute;inset:0;background:rgba(247,244,239,.97);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .45s ease}
+.fitting.on{opacity:1;pointer-events:auto}
+.fitting .phrase{font-family:var(--font-display);font-size:19px;font-style:italic;
+  color:#8c8479;letter-spacing:.01em;opacity:0;transition:opacity .6s ease}
+.fitting .phrase.in{opacity:1}
+.fitting::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 32%,rgba(255,255,255,.7) 50%,transparent 68%);
+  transform:translateX(-100%);animation:sheen 2.6s cubic-bezier(.4,0,.2,1) infinite}
+@keyframes sheen{to{transform:translateX(100%)}}
+
+/* rail */
+.rail-tabs{display:flex;gap:30px;justify-content:center;margin:26px 0 0;
+  border-bottom:1px solid var(--border);padding-bottom:0}
+.rail-tab{background:none;border:0;padding:0 0 13px;font-size:10.5px;letter-spacing:.2em;
+  color:#a09a91;position:relative;transition:color .25s}
+.rail-tab::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;
+  background:var(--ink);transform:scaleX(0);transition:transform .35s cubic-bezier(.22,1,.36,1)}
+.rail-tab.on{color:var(--ink)}
+.rail-tab.on::after{transform:scaleX(1)}
+
+.rail-wrap{position:relative;margin-top:22px;min-width:0}
+.rail{display:flex;gap:22px;overflow-x:auto;min-width:0;scroll-behavior:smooth;padding-bottom:6px;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.piece{flex:0 0 112px;background:none;border:0;padding:0;text-align:left;position:relative;
+  opacity:.62;transition:opacity .3s}
+.piece:hover,.piece.on{opacity:1}
+.piece .shot,.piece .nm,.piece .pr{display:block}
+.piece .shot{aspect-ratio:3/4;background:var(--cream);overflow:hidden}
+.piece .shot img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.22,1,.36,1)}
+.piece:hover .shot img{transform:scale(1.035)}
+.piece .nm{font-size:10.5px;line-height:1.4;margin-top:10px;min-height:29px;color:#2a2723}
+.piece .pr{font-size:10.5px;color:#7b756c;margin-top:3px}
+.piece::after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:1px;background:var(--ink);
+  transform:scaleX(0);transform-origin:left;transition:transform .4s cubic-bezier(.22,1,.36,1)}
+.piece.on::after{transform:scaleX(1)}
+.railbtn{position:absolute;top:32%;width:30px;height:30px;background:#fff;border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;z-index:3;transition:.22s}
+.railbtn:hover{border-color:var(--ink)}
+.railbtn.l{left:-15px}.railbtn.r{right:-15px}
+.railbtn svg{width:12px;height:12px;stroke:#3a3630;fill:none;stroke-width:1.6}
+
+.studio-actions{display:flex;gap:14px;justify-content:center;margin-top:22px;
+  padding-top:18px;border-top:1px solid var(--border)}
+.sact{height:46px;min-width:196px;border:1px solid var(--ink);background:#fff;
+  font-size:11px;font-weight:700;letter-spacing:.16em;display:flex;align-items:center;
+  justify-content:center;gap:10px;transition:.22s}
+.sact:hover:not(:disabled){background:var(--cream)}
+.sact.solid{background:var(--ink);color:#fff}
+.sact.solid:hover:not(:disabled){background:#2c2822}
+.sact:disabled{opacity:.32;cursor:not-allowed}
+.sact svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5}
+.studio .fail{font-size:12px;color:#a8412f;text-align:center;padding:0 30px;line-height:1.7}
+
+@media(max-width:960px){
+  .studio{padding:30px 22px 22px}
+  .studio-panes{grid-template-columns:1fr;gap:30px}
+  .well{height:min(52vh,420px)}
+  .studio-head h2{font-size:25px}
+  .studio-actions{flex-direction:column}.sact{width:100%;min-width:0}
+  .rail-tabs{gap:22px;justify-content:flex-start;overflow-x:auto}
+}
+
 /* ---------- responsive ---------- */
 @media(max-width:900px){
   .product{grid-template-columns:1fr;gap:28px}
@@ -225,7 +347,7 @@ body{padding-bottom:34px}
     </button>
     <a class="logo" href="#"><img src="assets/logo.png" alt="Barcelino"></a>
     <nav class="main">
-      <a href="#">HOME</a><a href="#">MEN'S</a><a href="#">WOMEN'S</a><a href="#">STORES</a><a href="#">SALE</a>
+      <a href="#">HOME</a><a href="#">MEN'S</a><a href="#">WOMEN'S</a><a href="#" id="navTryOn">VIRTUAL TRY-ON</a><a href="#">STORES</a><a href="#">SALE</a>
     </nav>
     <div class="icons">
       <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" fill="none"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
@@ -356,49 +478,51 @@ body{padding-bottom:34px}
   </div>
 </footer>
 
-<!-- ============ TRY-ON MODAL ============ -->
-<div class="overlay" id="overlay">
-  <!-- STATE 1: intro -->
-  <div class="modal" id="mIntro">
-    <button class="x" data-close>&times;</button>
-    <h2>See Yourself in This Jacket</h2>
-    <p class="lede">Our AI uses your photo to create a realistic look—tailored to you.</p>
-    <div class="trust">
-      <div><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>Realistic results</div>
-      <div><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="1"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>Secure &amp; private</div>
-      <div><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.5"/></svg>Only you can see</div>
+<!-- ============ VIRTUAL TRY-ON STUDIO ============ -->
+<div class="studio-scrim" id="scrim">
+ <div class="studio" role="dialog" aria-label="Virtual Try-On">
+  <button class="close" id="close" aria-label="Close">
+    <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+
+  <div class="studio-head"><h2>Virtual Try-On</h2><div class="rule"></div></div>
+
+  <div class="studio-panes">
+    <div>
+      <div class="slabel">YOUR PHOTO</div>
+      <div class="well"><img id="me" src="assets/shopper.jpg" alt="Your photo"></div>
+      <div class="changerow"><button class="change" id="change">CHANGE PHOTO</button></div>
+      <input type="file" id="file" accept="image/*" hidden>
+      <div class="readout">
+        <div><svg class="mark" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>
+          <span id="r1">Photo ready</span><em id="r1e">SAMPLE</em></div>
+        <div><svg class="mark" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>
+          <span>Fitted to your proportions</span><em>READY</em></div>
+      </div>
     </div>
 
-    <!-- D8: demo photo pre-loaded. No stranger's face, no live dependency. -->
-    <div class="loaded">
-      <img id="shopperThumb" src="assets/shopper.jpg" alt="Demo photo"
-           onerror="this.style.background='#ddd';this.removeAttribute('src')">
-      <div class="t"><b>DEMO PHOTO LOADED</b>Using the Muse sample shopper for this preview.</div>
-    </div>
+    <div>
+      <div class="slabel">THE LOOK</div>
+      <div class="well">
+        <img class="look" id="look" alt="" hidden>
+        <div class="fail" id="fail" hidden></div>
+        <div class="fitting" id="fitting"><div class="phrase" id="phrase">Preparing your fitting</div></div>
+      </div>
 
-    <button class="btn" style="width:100%" id="goGen">UPLOAD PHOTO</button>
-    <button class="btn ghost" style="width:100%;margin-top:9px" id="goGen2">TAKE PHOTO</button>
-    <div class="eta">◷ Estimated time: 10–20 seconds</div>
-    <p class="priv">Your photos are encrypted and never shared.<br><a href="#">Learn more about our Privacy Policy.</a></p>
+      <div class="rail-tabs" id="tabs"></div>
+      <div class="rail-wrap">
+        <button class="railbtn l" id="prev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <div class="rail" id="rail"></div>
+        <button class="railbtn r" id="next" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+      </div>
+    </div>
   </div>
 
-  <!-- STATE 2: generating -->
-  <div class="modal gen" id="mGen" hidden>
-    <button class="x" data-close>&times;</button>
-    <h2>Generating your look…</h2>
-    <p class="lede">This will just take a few seconds.</p>
-    <div class="thumbs">
-      <figure><figcaption>Your Photo</figcaption>
-        <img src="assets/shopper.jpg" alt="" onerror="this.style.background='#ddd';this.removeAttribute('src')"></figure>
-      <figure><figcaption>Selected Item</figcaption><img src="assets/products/hero-1.jpg" alt=""></figure>
-    </div>
-    <div class="ring">
-      <svg width="96" height="96"><circle class="bg" cx="48" cy="48" r="43"/>
-        <circle class="fg" id="ringFg" cx="48" cy="48" r="43" stroke-dasharray="270.2" stroke-dashoffset="270.2"/></svg>
-      <div class="pct" id="pct">0%</div>
-    </div>
-    <div class="genstep" id="genStep">Reading your photo…</div>
+  <div class="studio-actions">
+    <button class="sact solid" id="sAdd" disabled>ADD TO CART</button>
+    <button class="sact" id="sSave" disabled><svg viewBox="0 0 24 24"><path d="M20.8 8.6a5 5 0 00-8.8-3 5 5 0 00-8.8 3c0 5 8.8 10.4 8.8 10.4s8.8-5.4 8.8-10.4z"/></svg>SAVE LOOK</button>
+    <button class="sact" id="sShare" disabled><svg viewBox="0 0 24 24"><path d="M12 16V4M8 8l4-4 4 4M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>SHARE</button>
   </div>
+ </div>
 </div>
 
 <!-- D4: disclosure — present and permanent, deliberately low-contrast -->
@@ -408,77 +532,271 @@ body{padding-bottom:34px}
 </div>
 
 <script>
-/* Muse demo try-on flow.
-   D2/D6: the result is PRE-GENERATED at build time. This script plays the real
-   generating animation, then reveals the baked frame. No network call, no key in
-   the browser, cannot fail while a prospect is watching. */
+
+/* ============================================================
+   Virtual Try-On studio controller.
+
+   D12: every look is generated LIVE against the Muse backend via the
+   same-origin /api/tryon proxy (D13 — no credentials in this page).
+
+   Perceived speed is the whole game. Generation takes ~16s, so:
+     1. every look is cached the moment it returns — returning to a
+        garment you have already seen is INSTANT, no network at all;
+     2. after the first look lands, the rest of the rail is styled
+        quietly in the background, one at a time, so by the time the
+        user reaches for a second piece it is usually already waiting;
+     3. every click gets feedback in the same frame — the piece marks
+        itself selected and the veil appears immediately, never after
+        a round trip.
+   ============================================================ */
+const CATALOG = [
+  {
+    "slug": "1225-jkt-100-silk",
+    "name": "Beige Blue Silk Jacket",
+    "short": "Beige Blue Silk Jacket",
+    "price": "$1,675.00",
+    "image": "assets/catalog/1225-jkt-100-silk.jpg",
+    "category": "Jacket",
+    "tags": [
+      "new",
+      "jackets"
+    ]
+  },
+  {
+    "slug": "1221-jkt-55-silk-plaid",
+    "name": "Cream Beige Silk Blend Plaid Blazer",
+    "short": "Cream Beige Silk Blend Plaid Blazer",
+    "price": "$1,765.00",
+    "image": "assets/catalog/1221-jkt-55-silk-plaid.jpg",
+    "category": "Blazer",
+    "tags": [
+      "new",
+      "blazers"
+    ]
+  },
+  {
+    "slug": "1252-jkt-maxi-chevron",
+    "name": "Light Beige Silk Linen Chevron Blazer Jacket",
+    "short": "Light Beige Silk Linen Chevron Blazer Jacket",
+    "price": "$1,585.00",
+    "image": "assets/catalog/1252-jkt-maxi-chevron.jpg",
+    "category": "Blazer",
+    "tags": [
+      "new",
+      "blazers"
+    ]
+  },
+  {
+    "slug": "1400-jkt-silklino-max-chevron",
+    "name": "Light Gray Blazer Silk Linen Jacket",
+    "short": "Light Gray Blazer Silk Linen Jacket",
+    "price": "$1,685.00",
+    "image": "assets/catalog/1400-jkt-silklino-max-chevron.jpg",
+    "category": "Blazer",
+    "tags": [
+      "new",
+      "blazers"
+    ]
+  },
+  {
+    "slug": "5108-jkt-10-silk-bsktwv",
+    "name": "Purple Silk-Blend Basketweave Blazer",
+    "short": "Purple Silk-Blend Basketweave Blazer",
+    "price": "$1,675.00",
+    "image": "assets/catalog/5108-jkt-10-silk-bsktwv.jpg",
+    "category": "Blazer",
+    "tags": [
+      "new",
+      "blazers"
+    ]
+  },
+  {
+    "slug": "2367130-blzr-l-p-sup150-sb2pk",
+    "name": "Ravazzolo Blue Italian Wool & Silk Blazer | Made in Italy",
+    "short": "Ravazzolo Blue Italian Wool & Silk Blazer | Made in Italy",
+    "price": "$3,950.00",
+    "image": "assets/catalog/2367130-blzr-l-p-sup150-sb2pk.jpg",
+    "category": "Blazer",
+    "tags": [
+      "new",
+      "blazers"
+    ]
+  },
+  {
+    "slug": "1118-blzr-travel-metal-butns",
+    "name": "Blue Men's Travel Blazer",
+    "short": "Blue Men's Travel Blazer",
+    "price": "$1,465.00",
+    "image": "assets/catalog/1118-blzr-travel-metal-butns.jpg",
+    "category": "Blazer",
+    "tags": [
+      "new",
+      "blazers"
+    ]
+  },
+  {
+    "slug": "25953-lthr-zip-bsktwave",
+    "name": "Dark Brown Leather Jacket",
+    "short": "Dark Brown Leather Jacket",
+    "price": "$1,465.00 \u2013 $1,585.00",
+    "image": "assets/catalog/25953-lthr-zip-bsktwave.jpg",
+    "category": "Leather Jacket",
+    "tags": [
+      "new",
+      "leather"
+    ]
+  }
+];
+const TABS = [["new","NEW ARRIVALS"],["jackets","JACKETS"],["blazers","BLAZERS"],["leather","LEATHER"]];
+
+/* Fitting-room language. Never "processing", "rendering" or "generating" —
+   the technology is supposed to disappear. */
+const PHRASES = ["Preparing your fitting","Styling your look","Finishing the details"];
+
+const $ = id => document.getElementById(id);
+const looks = Object.create(null);   // slug -> data URL  (the cache)
+const inflight = Object.create(null); // slug -> Promise   (dedupe)
+let activeTab = "new", selected = null, personDataUrl = null;
+let phraseTimer = null, prefetching = false;
+
+/* ---------------- open / close ---------------- */
+function openStudio(){
+  const sc = $('scrim');
+  sc.classList.add('show');
+  requestAnimationFrame(()=>sc.classList.add('in'));
+  document.body.style.overflow='hidden';
+  if(!selected) select(CATALOG[0].slug);
+}
+function closeStudio(){
+  const sc = $('scrim');
+  sc.classList.remove('in');
+  setTimeout(()=>{sc.classList.remove('show');document.body.style.overflow='';},420);
+}
+$('navTryOn').addEventListener('click',e=>{e.preventDefault();openStudio();});
+const pdpBtn=$('openTryOn'); if(pdpBtn) pdpBtn.addEventListener('click',openStudio);
+$('close').addEventListener('click',closeStudio);
+$('scrim').addEventListener('click',e=>{if(e.target===$('scrim'))closeStudio();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('scrim').classList.contains('show'))closeStudio();});
+
+/* ---------------- rail ---------------- */
+function render(){
+  $('tabs').innerHTML = TABS.map(([k,l])=>
+    `<button class="rail-tab ${k===activeTab?'on':''}" data-tab="${k}">${l}</button>`).join('');
+  const list = activeTab==='new' ? CATALOG : CATALOG.filter(p=>p.tags.includes(activeTab));
+  $('rail').innerHTML = list.map(p=>`
+    <button class="piece ${selected===p.slug?'on':''}" data-slug="${p.slug}">
+      <span class="shot"><img src="${p.image}" alt="${p.name}"></span>
+      <span class="nm">${p.short}</span>
+      <span class="pr">${p.price}</span>
+    </button>`).join('');
+}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('.rail-tab'); if(t){activeTab=t.dataset.tab;render();return;}
+  const pc=e.target.closest('.piece'); if(pc) select(pc.dataset.slug);
+});
+$('prev').onclick=()=>$('rail').scrollBy({left:-300,behavior:'smooth'});
+$('next').onclick=()=>$('rail').scrollBy({left: 300,behavior:'smooth'});
+
+/* ---------------- photo ---------------- */
+$('change').onclick=()=>$('file').click();
+$('file').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    personDataUrl=rd.result; $('me').src=rd.result;
+    $('r1').textContent='Photo uploaded'; $('r1e').textContent='COMPLETE';
+    /* A new face invalidates every look we have cached. */
+    for(const k in looks) delete looks[k];
+    if(selected) show(selected,true);
+  };
+  rd.readAsDataURL(f);
+};
+
+/* ---------------- fitting veil ---------------- */
+function veil(on){
+  const f=$('fitting'), ph=$('phrase');
+  if(on){
+    f.classList.add('on'); let i=0;
+    ph.textContent=PHRASES[0]; ph.classList.add('in');
+    clearInterval(phraseTimer);
+    phraseTimer=setInterval(()=>{
+      ph.classList.remove('in');
+      setTimeout(()=>{i=(i+1)%PHRASES.length;ph.textContent=PHRASES[i];ph.classList.add('in');},600);
+    },3400);
+  }else{
+    clearInterval(phraseTimer); f.classList.remove('on'); ph.classList.remove('in');
+  }
+}
+
+/* ---------------- generation ---------------- */
+function fetchLook(p){
+  if(looks[p.slug]) return Promise.resolve(looks[p.slug]);
+  if(inflight[p.slug]) return inflight[p.slug];
+  inflight[p.slug]=fetch('/api/tryon',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({garment:p.image,name:p.name,category:p.category,personDataUrl})})
+    .then(async r=>{
+      const j=await r.json();
+      if(!r.ok) throw new Error(j.error||'Please try again.');
+      looks[p.slug]=j.imageUrl; return j.imageUrl;
+    })
+    .finally(()=>{delete inflight[p.slug];});
+  return inflight[p.slug];
+}
+
+function paint(url){
+  const img=$('look');
+  img.classList.remove('in'); img.hidden=false; $('fail').hidden=true;
+  const swap=()=>{img.src=url; requestAnimationFrame(()=>img.classList.add('in'));};
+  if(img.src && img.src!==url) setTimeout(swap,140); else swap();
+}
+
+function select(slug){ selected=slug; render(); show(slug,false); }
+
+async function show(slug,force){
+  const p=CATALOG.find(x=>x.slug===slug);
+  ['sAdd','sSave','sShare'].forEach(i=>$(i).disabled=true);
+
+  /* Cached → instant. This is what makes exploration feel like filters. */
+  if(!force && looks[slug]){
+    paint(looks[slug]); veil(false);
+    ['sAdd','sSave','sShare'].forEach(i=>$(i).disabled=false);
+    queuePrefetch(); return;
+  }
+  veil(true);
+  try{
+    const url=await fetchLook(p);
+    if(selected!==slug) return;          // user moved on; don't stomp the stage
+    paint(url); veil(false);
+    ['sAdd','sSave','sShare'].forEach(i=>$(i).disabled=false);
+  }catch(err){
+    if(selected!==slug) return;
+    veil(false); $('look').hidden=true;
+    $('fail').hidden=false;
+    /* Fail honestly — never substitute a stand-in image (#41). */
+    $('fail').textContent='We could not prepare that fitting. '+String(err.message).slice(0,90);
+  }
+  queuePrefetch();
+}
+
+/* Quietly style the rest of the rail, one at a time, lowest priority.
+   By the time the user picks a second piece it is usually already cached. */
+function queuePrefetch(){
+  if(prefetching) return;
+  const next=CATALOG.find(p=>!looks[p.slug]&&!inflight[p.slug]);
+  if(!next) return;
+  prefetching=true;
+  fetchLook(next).catch(()=>{}).finally(()=>{prefetching=false;setTimeout(queuePrefetch,400);});
+}
+
+render();
+
+/* QA hooks (#41): ?studio=1 opens it, ?fitting=1 freezes the veil for capture. */
 (function(){
-  var overlay=document.getElementById('overlay'),
-      mIntro=document.getElementById('mIntro'), mGen=document.getElementById('mGen'),
-      ring=document.getElementById('ringFg'), pct=document.getElementById('pct'),
-      step=document.getElementById('genStep'), C=270.2;
-
-  var STEPS=[[0,'Reading your photo…'],[28,'Matching garment fit…'],
-             [58,'Applying fit, lighting, and texture…'],[86,'Finishing your look…']];
-
-  function show(el){[mIntro,mGen].forEach(function(m){m.hidden=(m!==el)});}
-  function open(){overlay.classList.add('open');show(mIntro);}
-  function close(){overlay.classList.remove('open');}
-
-  document.getElementById('openTryOn').addEventListener('click',open);
-  overlay.addEventListener('click',function(e){if(e.target===overlay)close();});
-  document.querySelectorAll('[data-close]').forEach(function(b){b.addEventListener('click',close)});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
-
-  function generate(){
-    show(mGen); var p=0;
-    ring.style.strokeDashoffset=C; pct.textContent='0%'; step.textContent=STEPS[0][1];
-    var t=setInterval(function(){
-      p+=Math.random()*3.4+1.1;
-      if(p>=100){p=100;clearInterval(t);setTimeout(reveal,420);}
-      ring.style.strokeDashoffset=C*(1-p/100);
-      pct.textContent=Math.round(p)+'%';
-      for(var i=STEPS.length-1;i>=0;i--){if(p>=STEPS[i][0]){step.textContent=STEPS[i][1];break;}}
-    },110);
-  }
-  document.getElementById('goGen').addEventListener('click',generate);
-  document.getElementById('goGen2').addEventListener('click',generate);
-
-  function reveal(){
-    close();
-    var g=document.getElementById('gallery');
-    g.innerHTML='<div class="tryon-result">'
-      + '<span class="tag">ON YOU</span>'
-      + '<img id="tryonImg" src="assets/tryon.png" alt="Virtual try-on result">'
-      + '<div class="resultbar"><button class="btn ghost">♡ SAVE LOOK</button>'
-      + '<button class="btn ghost">↗ SHARE</button>'
-      + '<button class="btn ghost" id="resetBtn">VIEW PRODUCT</button></div></div>';
-    var img=document.getElementById('tryonImg');
-    img.onerror=function(){
-      /* No baked frame yet (OQ2: Muse API credentials pending).
-         Show an honest placeholder — NEVER pass a stand-in off as a real result. */
-      img.outerHTML='<div class="stub"><b>TRY-ON FRAME PENDING</b>'
-        + '<span>Pre-generated result drops in here once the Muse API credentials are wired. '
-        + 'Layout and flow are final.</span></div>';
-    };
-    document.getElementById('ctl').hidden=false;
-    document.getElementById('resetBtn').addEventListener('click',function(){location.reload()});
-    document.querySelector('.ctl').scrollIntoView({behavior:'smooth',block:'nearest'});
-  }
-
-  /* QA hooks (#41). ?state=intro|gen|result jumps straight to a state so the
-     automated fidelity gate can screenshot every screen headlessly, with no
-     browser driver and no clicking. Freezes the progress ring at 65% for a
-     stable, diffable frame. */
-  var st=new URLSearchParams(location.search).get('state');
-  if(st==='intro'){open();}
-  else if(st==='gen'){
-    overlay.classList.add('open');show(mGen);
-    ring.style.strokeDashoffset=C*0.35;pct.textContent='65%';
-    step.textContent='Applying fit, lighting, and texture…';
-  }
-  else if(st==='result'){reveal();}
+  const q=new URLSearchParams(location.search);
+  if(q.get('fitting')){ openStudio(); setTimeout(()=>veil(true),300); }
+  else if(q.get('studio')) openStudio();
 })();
+
 </script>
 </body>
 </html>

@@ -31,13 +31,19 @@ out = [{
     "tags": tags(p["name"]),
 } for p in src]
 
-path = f"{REPO}/sites/{brand}/tryon.html"
-html = open(path).read()
 blob = json.dumps(out, indent=2)
-if "__CATALOG__" in html:
-    html = html.replace("__CATALOG__", blob)
-else:
-    html = re.sub(r"const CATALOG = .*?;\n", "const CATALOG = " + blob + ";\n", html, count=1, flags=re.S)
-open(path, "w").write(html)
-print(f"injected {len(out)} products into sites/{brand}/tryon.html")
+for name in ("index.html",):
+    path = f"{REPO}/sites/{brand}/{name}"
+    if not os.path.exists(path):
+        continue
+    html = open(path).read()
+    if "__CATALOG__" in html:
+        html = html.replace("__CATALOG__", blob)
+    elif "const CATALOG = " in html:
+        html = re.sub(r"const CATALOG = .*?\n\];\n|const CATALOG = .*?;\n",
+                      "const CATALOG = " + blob + ";\n", html, count=1, flags=re.S)
+    else:
+        continue
+    open(path, "w").write(html)
+    print(f"injected {len(out)} products into sites/{brand}/{name}")
 for p in out: print(f"  {p['price']:>22}  {p['short'][:46]:<46} {','.join(p['tags'][1:])}")
