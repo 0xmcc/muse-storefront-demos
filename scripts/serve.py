@@ -45,9 +45,7 @@ EDITORIAL_NOTES = (
 )
 
 # Public demo, live generation, real money per call. Cap it per IP (#44).
-# Raised from 12 because the studio pre-styles the rail in the background to make
-# swaps feel instant — one visitor legitimately spends ~9 calls on arrival.
-RATE_MAX = 30
+RATE_MAX = 12
 RATE_WINDOW_S = 600
 _hits = defaultdict(deque)
 _lock = threading.Lock()

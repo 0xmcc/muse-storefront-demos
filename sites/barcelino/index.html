@@ -539,15 +539,17 @@ body{padding-bottom:34px}
    D12: every look is generated LIVE against the Muse backend via the
    same-origin /api/tryon proxy (D13 — no credentials in this page).
 
-   Perceived speed is the whole game. Generation takes ~16s, so:
-     1. every look is cached the moment it returns — returning to a
-        garment you have already seen is INSTANT, no network at all;
-     2. after the first look lands, the rest of the rail is styled
-        quietly in the background, one at a time, so by the time the
-        user reaches for a second piece it is usually already waiting;
-     3. every click gets feedback in the same frame — the piece marks
+   Perceived speed is pursued WITHOUT speculative generation:
+     1. every look is cached the moment it returns, so revisiting a
+        garment the user already viewed is INSTANT with no network —
+        this is memoisation of requested work, not pre-generation;
+     2. every click gets feedback in the same frame — the piece marks
         itself selected and the veil appears immediately, never after
-        a round trip.
+        a round trip;
+     3. the fitting veil keeps the previous look faintly visible so the
+        panel is never empty mid-swap.
+
+   One generation per garment the user actually selects. Nothing else.
    ============================================================ */
 const CATALOG = [
   {
@@ -657,7 +659,7 @@ const $ = id => document.getElementById(id);
 const looks = Object.create(null);   // slug -> data URL  (the cache)
 const inflight = Object.create(null); // slug -> Promise   (dedupe)
 let activeTab = "new", selected = null, personDataUrl = null;
-let phraseTimer = null, prefetching = false;
+let phraseTimer = null;
 
 /* ---------------- open / close ---------------- */
 function openStudio(){
@@ -760,7 +762,7 @@ async function show(slug,force){
   if(!force && looks[slug]){
     paint(looks[slug]); veil(false);
     ['sAdd','sSave','sShare'].forEach(i=>$(i).disabled=false);
-    queuePrefetch(); return;
+    return;
   }
   veil(true);
   try{
@@ -775,18 +777,12 @@ async function show(slug,force){
     /* Fail honestly — never substitute a stand-in image (#41). */
     $('fail').textContent='We could not prepare that fitting. '+String(err.message).slice(0,90);
   }
-  queuePrefetch();
 }
 
-/* Quietly style the rest of the rail, one at a time, lowest priority.
-   By the time the user picks a second piece it is usually already cached. */
-function queuePrefetch(){
-  if(prefetching) return;
-  const next=CATALOG.find(p=>!looks[p.slug]&&!inflight[p.slug]);
-  if(!next) return;
-  prefetching=true;
-  fetchLook(next).catch(()=>{}).finally(()=>{prefetching=false;setTimeout(queuePrefetch,400);});
-}
+/* NO speculative generation. Every call must correspond to a garment the user
+   actually asked for (D12: nothing pre-baked). An earlier build quietly styled
+   the whole rail in the background — 8 calls on page open, clicked or not. That
+   is pre-generation with extra steps, and it spends real money per visitor. */
 
 render();
 
