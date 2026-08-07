@@ -420,6 +420,90 @@ body{padding-bottom:34px}
   .consent h2{font-size:17px}
 }
 
+
+/* ============================================================
+   UPLOAD MODAL — "the fitting room"
+   Sits between consent and the studio. Every part is a discrete
+   element with its own class (artwork, mark, title, rule, copy,
+   CTA, assurances, close, dim, spinner) so any layer can be
+   restyled or replaced without touching the others.
+   ============================================================ */
+.up-scrim{position:fixed;inset:0;z-index:108;background:rgba(168,165,161,.42);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  display:none;align-items:center;justify-content:center;padding:20px;
+  opacity:0;transition:opacity .4s cubic-bezier(.4,0,.2,1)}
+.up-scrim.show{display:flex}
+.up-scrim.in{opacity:1}
+.up-scrim.leaving{opacity:0}
+
+.up{background:#FAF8F5;width:100%;max-width:920px;border-radius:10px;overflow:hidden;
+  box-shadow:0 30px 84px rgba(38,32,25,.24);position:relative;
+  display:grid;grid-template-columns:minmax(0,52fr) minmax(0,48fr);
+  min-height:min(78vh,600px);max-height:94vh;
+  transform:translateY(14px) scale(.994);opacity:0;
+  transition:transform .55s cubic-bezier(.22,1,.36,1),opacity .45s ease-out}
+.up-scrim.in .up{transform:none;opacity:1}
+
+/* layer: artwork */
+.up-art{position:relative;overflow:hidden;background:#e9e3da}
+.up-art img{width:100%;height:100%;object-fit:cover;object-position:center 42%;
+  transition:filter .8s cubic-bezier(.4,0,.2,1),transform 1.6s cubic-bezier(.22,1,.36,1)}
+.up.busy .up-art img{filter:brightness(.62) saturate(.9);transform:scale(1.03)}
+/* layer: artwork dim */
+.up-art .dim{position:absolute;inset:0;background:rgba(38,32,25,.18);
+  opacity:0;transition:opacity .8s ease}
+.up.busy .up-art .dim{opacity:1}
+
+/* layer: content */
+.up-body{padding:46px 44px;display:flex;flex-direction:column;justify-content:center;
+  text-align:center;overflow:auto}
+.up-mark{height:26px;width:auto;margin:0 auto 26px;display:block;opacity:.92}
+.up-title{font-family:var(--font-display);font-size:23px;font-weight:400;
+  text-transform:uppercase;letter-spacing:.15em;line-height:1.4;color:#2a241d;margin:0}
+.up-rule{width:40px;height:1px;background:var(--gold);margin:20px auto 22px}
+.up-copy{font-size:13.5px;line-height:1.9;color:#5c554b;margin:0 0 30px}
+
+/* layer: primary action */
+.up-cta{width:100%;height:54px;border:1px solid #2a241d;background:#2a241d;color:#fff;
+  font-size:11.5px;font-weight:700;letter-spacing:.16em;display:flex;align-items:center;
+  justify-content:center;gap:11px;transition:background .22s}
+.up-cta:hover:not(:disabled){background:#413830}
+.up-cta:disabled{cursor:default}
+.up-cta svg.ico{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.6}
+.up-spin{width:15px;height:15px;border:1.5px solid rgba(255,255,255,.32);
+  border-top-color:#fff;border-radius:50%;animation:upspin .8s linear infinite;display:none}
+.up.busy .up-spin{display:block}
+.up.busy .up-cta svg.ico{display:none}
+@keyframes upspin{to{transform:rotate(360deg)}}
+
+/* layer: secondary action */
+.up-alt{background:none;border:0;margin:16px auto 0;font-size:11.5px;color:#8a8175;
+  border-bottom:1px solid #cfc7bb;padding-bottom:2px;transition:.2s}
+.up-alt:hover{color:#2a241d;border-color:#8a8175}
+.up.busy .up-alt{opacity:.35;pointer-events:none}
+
+/* layer: assurances */
+.up-notes{margin:30px 0 0;padding-top:22px;border-top:1px solid #ebe5dc;
+  display:flex;flex-direction:column;gap:9px;text-align:left}
+.up-notes div{display:flex;gap:10px;align-items:center;font-size:11.5px;color:#8a8175}
+.up-notes svg{width:12px;height:12px;flex:none;stroke:var(--gold);fill:none;stroke-width:2}
+
+/* layer: close */
+.up-close{position:absolute;top:18px;right:20px;z-index:3;background:rgba(250,248,245,.86);
+  border:0;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;color:#6e6a65;transition:.2s}
+.up-close:hover{background:#fff;color:#1c1a18}
+.up-close svg{width:14px;height:14px;stroke:currentColor;stroke-width:1.5;fill:none}
+.up.busy .up-close{opacity:0;pointer-events:none}
+
+@media(max-width:820px){
+  .up{grid-template-columns:1fr;min-height:0}
+  .up-art{height:200px}
+  .up-art img{object-position:center 38%}
+  .up-body{padding:30px 22px}
+  .up-title{font-size:19px}
+}
+
 /* ---------- responsive ---------- */
 @media(max-width:900px){
   .product{grid-template-columns:1fr;gap:28px}
@@ -789,6 +873,41 @@ body{padding-bottom:34px}
   <button class="go" id="cGo" disabled>CONSENT AND CONTINUE</button>
   <p class="nudge" id="cNudge">Please accept both statements to continue.</p>
   <p class="micro">Private to you. Not kept.</p>
+ </div>
+</div>
+
+<!-- ============ UPLOAD ("THE FITTING ROOM") ============ -->
+<div class="up-scrim" id="uScrim">
+ <div class="up" id="uCard" role="dialog" aria-modal="true" aria-labelledby="uTitle">
+  <button class="up-close" id="uClose" aria-label="Close">
+    <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+
+  <div class="up-art">
+    <img src="assets/landing/fitting-room.jpg" alt="A Barcelino jacket presented in the boutique">
+    <div class="dim"></div>
+  </div>
+
+  <div class="up-body">
+    <img class="up-mark" src="assets/logo.png" alt="Barcelino">
+    <h2 class="up-title" id="uTitle">Begin Your<br>Virtual Fitting</h2>
+    <div class="up-rule"></div>
+    <p class="up-copy">Upload one photograph and experience Barcelino's collection as
+    though every garment were tailored specifically for you.</p>
+
+    <input type="file" id="uFile" accept="image/*" hidden>
+    <button class="up-cta" id="uGo">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M12 16V4M8 8l4-4 4 4M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>
+      <span class="up-spin"></span>
+      <span id="uGoLabel">UPLOAD YOUR PHOTO</span>
+    </button>
+    <button class="up-alt" id="uAlt">Continue with a sample photograph</button>
+
+    <div class="up-notes">
+      <div><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Your photograph remains private</div>
+      <div><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Used only to generate your fitting</div>
+      <div><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Removed whenever you choose</div>
+    </div>
+  </div>
  </div>
 </div>
 
@@ -1195,7 +1314,7 @@ function syncGo(){
   if(ok) $('cNudge').classList.remove('on');
 }
 ['c1','c2'].forEach(id=>$(id).addEventListener('change',syncGo));
-$('cGo').addEventListener('click',()=>{ rememberConsent(); closeConsent(openStudio); });
+$('cGo').addEventListener('click',()=>{ rememberConsent(); closeConsent(openUpload); });
 $('cClose').addEventListener('click',()=>closeConsent());
 $('cScrim').addEventListener('click',e=>{ if(e.target===$('cScrim')) closeConsent(); });
 /* A disabled button swallows clicks, so the nudge is armed from the wrapper. */
@@ -1206,9 +1325,87 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape' && $('cScrim').classList.contains('show')) closeConsent();
 });
 
+/* ---------------- upload ("the fitting room") ----------------
+   Consent → upload → studio. Once a photo is chosen it is held in memory for
+   the session, so returning to the try-on skips straight back to the fitting
+   rather than asking again. Kept in memory rather than sessionStorage: a photo
+   data URL will blow the storage quota. */
+let photoChosen = false;
+
+function openUpload(){
+  const sc=$('uScrim');
+  $('uCard').classList.remove('busy');
+  $('uGoLabel').textContent='UPLOAD YOUR PHOTO';
+  sc.classList.remove('leaving'); sc.classList.add('show');
+  requestAnimationFrame(()=>sc.classList.add('in'));
+  document.body.style.overflow='hidden';
+}
+function closeUpload(then){
+  const sc=$('uScrim');
+  sc.classList.remove('in'); sc.classList.add('leaving');
+  setTimeout(()=>{
+    sc.classList.remove('show','leaving');
+    $('uCard').classList.remove('busy');
+    document.body.style.overflow='';
+    if(then) then();
+  },520);
+}
+
+/* Hand the chosen photo to the studio before it opens, so the fitting appears
+   already populated rather than swapping in a beat later. */
+function adoptPhoto(dataUrl, sample){
+  photoChosen=true;
+  if(dataUrl){
+    personDataUrl=dataUrl;
+    $('me').src=dataUrl;
+    $('r1').textContent='Photo uploaded'; $('r1s').textContent='Complete';
+  }else{
+    personDataUrl=null;
+    $('me').src='assets/shopper.jpg';
+    $('r1').textContent='Photo ready'; $('r1s').textContent='Sample';
+  }
+  /* a new face invalidates any look already generated */
+  for(const k in looks) delete looks[k];
+  selected=null;
+}
+
+/* A local file is available instantly; this beat is presentation, not progress.
+   The honest wait is the fitting veil in the studio, which tracks a real call. */
+function proceed(dataUrl, sample){
+  const card=$('uCard');
+  card.classList.add('busy');
+  $('uGoLabel').textContent = sample ? 'PREPARING YOUR FITTING' : 'PREPARING YOUR FITTING';
+  $('uGo').disabled=true; 
+  setTimeout(()=>{
+    adoptPhoto(dataUrl, sample);
+    closeUpload(()=>{ $('uGo').disabled=false; openStudio(); });
+  }, 1150);
+}
+
+$('uGo').addEventListener('click',()=>{ if(!$('uCard').classList.contains('busy')) $('uFile').click(); });
+$('uFile').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>proceed(rd.result,false);
+  rd.readAsDataURL(f);
+});
+$('uAlt').addEventListener('click',()=>proceed(null,true));
+$('uClose').addEventListener('click',()=>closeUpload());
+$('uScrim').addEventListener('click',e=>{
+  if(e.target===$('uScrim') && !$('uCard').classList.contains('busy')) closeUpload();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && $('uScrim').classList.contains('show')
+     && !$('uCard').classList.contains('busy')) closeUpload();
+});
+
 /* Entry points differ per page (nav item, PDP button, landing CTAs), so bind
    whatever exists rather than assuming. All route through the gate. */
-function requestStudio(){ consented() ? openStudio() : openConsent(); }
+function requestStudio(){
+  if(!consented()) return openConsent();
+  if(!photoChosen) return openUpload();
+  openStudio();
+}
 document.querySelectorAll('[data-open-studio]').forEach(el=>
   el.addEventListener('click',e=>{e.preventDefault();requestStudio();}));
 ['navTryOn','openTryOn'].forEach(id=>{
@@ -1256,6 +1453,7 @@ $('file').onchange=e=>{
   rd.onload=()=>{
     personDataUrl=rd.result; $('me').src=rd.result;
     $('r1').textContent='Photo uploaded'; $('r1s').textContent='Complete';
+    photoChosen=true;
     /* A new face invalidates every look we have cached. */
     for(const k in looks) delete looks[k];
     if(selected) show(selected,true);
@@ -1342,6 +1540,7 @@ render();
 /* QA hooks (#41): ?studio=1 opens it, ?fitting=1 freezes the veil for capture. */
 (function(){
   const q=new URLSearchParams(location.search);
+  if(q.get('upload')){ openUpload(); if(q.get('upload')==='busy') setTimeout(()=>{$('uCard').classList.add('busy');$('uGoLabel').textContent='PREPARING YOUR FITTING';},420); return; }
   if(q.get('consent')){
     openConsent();
     /* ?consent=ready ticks both boxes so the enabled state is screenshottable */

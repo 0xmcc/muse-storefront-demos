@@ -24,7 +24,7 @@ base_css = re.search(r"<style>(.*?)</style>", index, re.S).group(1)
 # Start at the CONSENT block, not the studio: the controller binds consent
 # elements unconditionally, so shipping the studio without them throws and
 # takes the whole try-on down on this page.
-START = "<!-- ============ PRE-TRY-ON CONSENT ============ -->"
+START = "<!-- ============ PRE-TRY-ON CONSENT ============ -->"  # first block of the flow
 if START not in index:
     START = "<!-- ============ VIRTUAL TRY-ON STUDIO ============ -->"
 markup = index[index.index(START):index.index("<!-- D4: disclosure")]
