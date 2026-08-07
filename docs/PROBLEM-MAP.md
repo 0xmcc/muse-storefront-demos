@@ -38,6 +38,7 @@ minutes beats a 99% clone in a day. This ruling governs every trade-off below.
 | D15a | **Cost controls are not mine to loosen.** The per-IP cap stays at 12/10min unless Marko changes it | The same build quietly raised it 12→30 to make room for the prefetch. Reverted | 2026-08-06 |
 | D16 | **Fitting-room language, never machine language.** "Preparing your fitting" / "Styling your look", no percentages, no progress bars | "Processing / Rendering / Generating" is what makes a thing read as an AI demo. Also dropped the ✦ sparkle from the reference — a sparkle is the universal AI tell and Barcelino would never ship one | 2026-08-06 |
 | D17 | The studio lives INSIDE the retailer's own page, opened by exactly one new nav item | Brief: do not redesign the site. An invented hero page (built in v2) was a redesign and was removed | 2026-08-06 |
+| D18 | **No before/after in the landing hero.** The hero sells the aspiration, not the technology | 2026-08-07. Side-by-side is a beauty-app pattern — it exists because makeup *changes your appearance*. Fashion is different: the first reaction should be "I want to wear that", and only later "that could be me". Supersedes the earlier landing brief's "elegant side-by-side demonstration". See [[HERO-IMAGE-METHOD]] | 2026-08-07 |
 | D11 | Product images passed to try-on as base64 `data:` URLs, not remote URLs | The Muse backend accepts data URLs and would otherwise SILENTLY skip hotlink-blocked images, producing a plausible-but-wrong garment. See TRYON-INTEGRATION.md | 2026-08-06 |
 
 ## Problem map
@@ -168,6 +169,10 @@ without a decision recorded here.
   `scripts/serve.py` is the local dev version and maps 1:1 onto a Vercel/Cloudflare
   function — keep the request shape identical so the front end doesn't change.
   Also unresolved: per-visitor spend on a public link (#44).
+- **OQ5 — OPEN.** Hero imagery is currently a stock editorial model, not the shopper.
+  It sells the brand well but no longer demonstrates the product; the proof now lives
+  entirely in the step walkthrough. Decide whether that split is right before this goes
+  out, and whether each retailer's demo needs its own hero shot.
 - **OQ4 — RESOLVED 2026-08-06.** Shopper photo is Marko's Twitter avatar, cropped to a
   3:4 portrait to exclude the dog, at `sites/<brand>/assets/shopper.jpg`.
   ⚠ Known limitation: it is a head-and-shoulders selfie with no torso, so the model must

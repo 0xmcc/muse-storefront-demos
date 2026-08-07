@@ -8,6 +8,9 @@ to send cold.
 every locked decision (D1–D11) with its rationale. Read it before changing behavior.
 `docs/TRYON-INTEGRATION.md` — the Muse try-on API contract and the silent-failure trap
 that D11 exists to prevent.
+`docs/HERO-IMAGE-METHOD.md` — how the landing hero was produced, as a repeatable
+three-pass method (articulate feedback → art direction → extract asset). Read before
+making a hero for the next retailer; the extraction prompt is the non-obvious part.
 
 ## Status (2026-08-06)
 Pre-skill. One site built by hand to learn the shape before freezing it into a skill.
