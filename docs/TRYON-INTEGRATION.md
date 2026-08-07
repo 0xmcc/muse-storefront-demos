@@ -50,12 +50,18 @@ POST {MUSE_API_BASE}/api/outfits/tryon
 
 ### Getting past the Pro gate (server-to-server)
 Our generator is not a RevenueCat subscriber. One of these is required:
-1. `x-dev-pro-override` header (constant `DEV_PRO_OVERRIDE_HEADER` in `src/types.ts`)
-   matching `env.DEV_PRO_OVERRIDE_KEY`. **Preferred** — scoped and revocable.
+1. `x-dev-pro-override-key` header matching `env.DEV_PRO_OVERRIDE_KEY`.
+   **Preferred** — scoped and revocable.
+   ⚠ The header name is `x-dev-pro-override-KEY`, not `x-dev-pro-override`. Getting this
+   wrong returns a perfectly ordinary `402 PRO_REQUIRED`, which looks like a credentials
+   problem rather than a typo. Verified against `DEV_PRO_OVERRIDE_HEADER` in
+   `muse-backend/src/types.ts`.
 2. `REVENUECAT_GATE_DISABLED=1` on the server. Emergency escape hatch, global. Avoid.
 
-Note: a hardcoded owner override constant also exists in `src/middleware/requirePro.ts`.
-Do not depend on it; prefer the env-configured key.
+Note: a hardcoded owner override constant also exists in `src/middleware/requirePro.ts`
+and is accepted regardless of server env. Do not depend on it; prefer the env-configured
+key. It is also worth removing from the backend — a literal in source that bypasses the
+paywall is a standing risk once that repo is ever shared or leaked.
 
 ### Rate limit
 `/api/outfits/*` → 25 requests per 5 minutes.
@@ -117,8 +123,18 @@ Internally: read both files → base64 → POST → decode `data.imageUrl` → r
 Everything Muse-specific stays behind this boundary so the provider can be swapped
 without touching the site generator.
 
-## Blocked on (OQ2)
-Neither credential exists on this machine as of 2026-08-06:
+## Credentials — RESOLVED 2026-08-06
+Sourced from `0xmcc/muse-mobile` `eas.json` (the app key must match the backend's
+`APP_API_KEY` by design, so the mobile config is the canonical place to read it).
+Stored at repo root in `.env`, chmod 600, gitignored:
+`MUSE_API_BASE`, `APP_API_KEY`, `DEV_PRO_OVERRIDE_KEY`.
+
+Verified end to end on 2026-08-06: `/health` 200, `/api/outfits/tryon` returned a correct
+composite. The `marko-prod-vps` box does NOT hold these — it has an unauthenticated
+Railway CLI and only a `.env.example`.
+
+### Historical (for context)
+Before that, neither credential existed on this machine:
 - `MUSE_API_BASE` — the deployed Railway URL. Not committed to the repo; lives in Railway
   config and the mobile app's EAS env.
 - `APP_API_KEY` + `DEV_PRO_OVERRIDE_KEY` — for the deployed instance.

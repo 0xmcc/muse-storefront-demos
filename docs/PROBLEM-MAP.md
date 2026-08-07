@@ -144,8 +144,13 @@ without a decision recorded here.
 ## Open questions
 - **OQ1 — RESOLVED.** Try-on generation = `POST /api/outfits/tryon` on `0xmcc/muse-backend`.
   See `TRYON-INTEGRATION.md`.
-- **OQ2 — OPEN.** Credentials/host to actually call it: either the deployed Railway base URL
-  + `APP_API_KEY`, or a `GOOGLE_API_KEY` to run the backend locally. Neither is present on
-  this machine. Until supplied, `tryon_status: stub`.
+- **OQ2 — RESOLVED 2026-08-06.** `MUSE_API_BASE` + `APP_API_KEY` + `DEV_PRO_OVERRIDE_KEY`
+  read from `0xmcc/muse-mobile` `eas.json`, stored in `.env` (chmod 600, gitignored).
+  Verified end to end against the live backend. See TRYON-INTEGRATION.md.
 - **OQ3 — OPEN.** Where demos get hosted (#13, #32, #38 all depend on this).
-- **OQ4 — OPEN.** Final shopper photo file (D5). One image, committed to the repo.
+- **OQ4 — RESOLVED 2026-08-06.** Shopper photo is Marko's Twitter avatar, cropped to a
+  3:4 portrait to exclude the dog, at `sites/<brand>/assets/shopper.jpg`.
+  ⚠ Known limitation: it is a head-and-shoulders selfie with no torso, so the model must
+  invent the entire body below the chest. It produced a good result for Barcelino, but a
+  clean full-length photo would be more reliable across many sites. Revisit if try-on
+  quality varies. See [[D5]].
