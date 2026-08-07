@@ -14,7 +14,8 @@ Pre-skill. One site built by hand to learn the shape before freezing it into a s
 
 | | |
 |---|---|
-| Reference build | `sites/barcelino/` |
+| Reference build | `sites/barcelino/` — `index.html` (PDP, v1) + `tryon.html` (studio, v2) |
+| Brand style profile | `sites/barcelino/brand.json` (D14) |
 | Ledger | `demos.csv` — one row per run, aborts included (D9) |
 | Raw scrape + screenshots | `.scrape/barcelino/` |
 
@@ -28,6 +29,20 @@ demos.csv        the run ledger / control panel
 .scrape/<brand>/ raw FireCrawl output + ground-truth screenshots (gitignored)
 ```
 
+## Running a demo
+Try-on is generated LIVE (D12) through a proxy that holds the Muse credentials (D13),
+so a demo needs the server — it is not a static file any more.
+
+```bash
+python3 scripts/serve.py --brand barcelino     # http://localhost:8765
+```
+`/tryon.html` is the L'Oréal-style studio: your photo on the left, the generated look on
+the right, a category-tabbed carousel of the retailer's real catalog underneath. Click any
+garment and it generates against the live Muse backend in ~16s.
+
+QA hooks: `?gen=1` freezes the generating overlay without spending a call;
+`?auto=<slug>` fires a real generation on load for headless capture.
+
 ## How a build works
 1. **Scrape structure** — FireCrawl `/v2/scrape` with `rawHtml` + full-page `screenshot`.
    Homepage, one category, one PDP. Hard page budget (#12).
@@ -39,8 +54,11 @@ demos.csv        the run ledger / control panel
    zero FireCrawl credits. Always try curl before spending a scrape.
 4. **Localize every asset** — download images; never hotlink (#4).
 5. **Build** a static `index.html` on the retailer's real tokens, images, and copy.
-6. **Pre-generate the try-on frame** (D2) via `POST /api/outfits/tryon`, passing images as
-   base64 `data:` URLs (D11 — this is not optional, see TRYON-INTEGRATION.md).
+6. **Write `brand.json`** (D14) — fonts, tokens, layout metrics, copy, scraping gotchas.
+   This is the reusable artifact; the HTML is downstream of it.
+7. **Wire live try-on** (D12) through `scripts/serve.py`, which calls
+   `POST /api/outfits/tryon` passing images as base64 `data:` URLs (D11 — not optional,
+   see TRYON-INTEGRATION.md). Credentials stay server-side (D13).
 7. **QA gate** (D7/#41) — screenshot every state, compare against the real page, verdict
    pass / near-miss / abort.
 8. **Publish + log** — a row in `demos.csv` either way (D9/#42).

@@ -22,8 +22,8 @@ minutes beats a 99% clone in a day. This ruling governs every trade-off below.
 | ID | Decision | Rationale | Date |
 |----|----------|-----------|------|
 | D1 | Use the retailer's REAL catalog. No catalog → abort, not generic fallback | The mechanism IS "that's my jacket, on a person." Stock products destroy it | 2026-08-06 |
-| D2 | Try-on results PRE-GENERATED at build time, not live | Weapon must never fail while a prospect watches. Live gen is the product; canned is the demo | 2026-08-06 |
-| D3 | Generate for ~1 hero product per site, not the catalog | Cost + wall-clock. It's a demo, not a migration | 2026-08-06 |
+| ~~D2~~ | ~~Try-on results PRE-GENERATED at build time~~ ⚠️ **SUPERSEDED by D12 on 2026-08-06** | Original rationale (never fail on a call) still valid but Marko chose live. Kept for legibility | 2026-08-06 |
+| ~~D3~~ | ~~Generate ~1 hero product per site~~ ⚠️ **SUPERSEDED by D12** | Live generation means no build-time budget; the constraint moved to per-click cost | 2026-08-06 |
 | D4 | Persistent but visually QUIET "concept demo / not affiliated" disclosure | Legal + anti-phishing cover without undercutting the illusion | 2026-08-06 |
 | D5 | ONE fixed, known shopper photo reused across all sites | Consistency + reviewability. Per-prospect face deferred | 2026-08-06 |
 | D6 | UI plays the REAL generating-state animation over a canned result | "It should feel real" — perceived latency is part of the demo | 2026-08-06 |
@@ -31,6 +31,9 @@ minutes beats a 99% clone in a day. This ruling governs every trade-off below.
 | D8 | Upload modal ships with the shopper photo PRE-LOADED | Preserves the full narrative, zero live dependency, no deception. Answers "how does it know which page has the pre-generated thing" | 2026-08-06 |
 | D9 | Every run appends one row to a tracking CSV — INCLUDING aborts | A silent failure is the thing the QA gate exists to prevent. Failures get louder treatment, not quieter | 2026-08-06 |
 | D10 | `qa_verdict` is a column AND it gates publishing | pass → publish · near-miss → publish + flags · abort → row written, nothing published | 2026-08-06 |
+| D12 | **Try-on generated LIVE, per click, via a server-side proxy.** Nothing pre-baked | Marko, 2026-08-06. Reverses D2. The demo shows the real product doing the real thing. Measured latency ~16s, not the ~60s assumed — which is what makes it viable | 2026-08-06 |
+| D13 | Muse credentials NEVER reach the browser. The page calls `/api/tryon` on its own origin; the server holds the key | A demo mailed to 40 boutiques with the app key + Pro override in source hands anyone a permanent Muse Pro bypass | 2026-08-06 |
+| D14 | Each retailer gets a `brand.json` style profile — the reusable context artifact the skill will emit | Separates *what we learned about this brand* from *the page we built*, so a second page (or a rebuild) never re-derives it | 2026-08-06 |
 | D11 | Product images passed to try-on as base64 `data:` URLs, not remote URLs | The Muse backend accepts data URLs and would otherwise SILENTLY skip hotlink-blocked images, producing a plausible-but-wrong garment. See TRYON-INTEGRATION.md | 2026-08-06 |
 
 ## Problem map
@@ -91,6 +94,10 @@ Value drivers: DO=Dream Outcome · LOA=Likelihood of Achievement · TD=Time Dela
 | 40 | Demo #40 is worse than #1 and nobody notices | LOA | CONTRACT | #41 |
 | 41 | **Nothing catches a bad generation before it ships** | LOA | CONTRACT (D7) | Raised by Marko. THE scale-killer. Pre-generation FREEZES the bad frame in permanently |
 | 42 | **A run that fails must still be visible** | DO | CONTRACT (D9) | Aborts write a CSV row. Silence is the enemy |
+| 43 | **Live generation would leak the Muse app key + Pro override into page source** | LOA | CONTRACT (D13) | Surfaced by the v2 live decision. Would hand out free Muse Pro to anyone with devtools |
+| 44 | Live means cost per VISITOR, not per build — a demo left open is a drain | ES | CONTRACT | Per-IP rate limit in the proxy (12 / 10 min). Revisit before any public link |
+| 45 | Generations return ~9:16 portrait; a landscape stage crops away either the face or the garment | LOA | EXAMPLE | Show the full frame matted on cream. Never crop the product out of a product demo |
+| 46 | The demo is no longer a static file — it needs a running server | TD | CONTRACT | Changes hosting (OQ3): needs a serverless function, not a static bucket |
 
 ## Output contract (v1)
 Every run produces exactly two things:
@@ -147,7 +154,11 @@ without a decision recorded here.
 - **OQ2 — RESOLVED 2026-08-06.** `MUSE_API_BASE` + `APP_API_KEY` + `DEV_PRO_OVERRIDE_KEY`
   read from `0xmcc/muse-mobile` `eas.json`, stored in `.env` (chmod 600, gitignored).
   Verified end to end against the live backend. See TRYON-INTEGRATION.md.
-- **OQ3 — OPEN.** Where demos get hosted (#13, #32, #38 all depend on this).
+- **OQ3 — OPEN, and now harder.** Where demos get hosted. D12 means these are no longer
+  static pages: each needs a server-side `/api/tryon` holding the credentials (#46).
+  `scripts/serve.py` is the local dev version and maps 1:1 onto a Vercel/Cloudflare
+  function — keep the request shape identical so the front end doesn't change.
+  Also unresolved: per-visitor spend on a public link (#44).
 - **OQ4 — RESOLVED 2026-08-06.** Shopper photo is Marko's Twitter avatar, cropped to a
   3:4 portrait to exclude the dog, at `sites/<brand>/assets/shopper.jpg`.
   ⚠ Known limitation: it is a head-and-shoulders selfie with no torso, so the model must

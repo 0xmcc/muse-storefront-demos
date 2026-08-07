@@ -1,0 +1,150 @@
+{
+  "$schema": "../../docs/brand-profile.schema.md",
+  "schema_version": 1,
+
+  "identity": {
+    "name": "Barcelino",
+    "legal_name": "Barcelino Continental Corp.",
+    "domain": "barcelino.com",
+    "segment": "luxury menswear and womenswear boutique",
+    "positioning_line": "Elevated Style For Every Occasion",
+    "logo": {
+      "file": "assets/logo.png",
+      "kind": "raster-wordmark",
+      "treatment": "script wordmark in warm copper-brown, on white",
+      "render_height_px": 55,
+      "source": "https://barcelino.com/barcelino-logo.png"
+    }
+  },
+
+  "platform": {
+    "frontend": "next.js",
+    "host": "vercel",
+    "cms": "headless wordpress (wp-content image origin)",
+    "css_framework": "tailwind v4 + shadcn/ui",
+    "evidence": ["/_next/static/chunks/*.css", "dpl_ deployment query param", "--breakpoint-2xl / --accent / --card tokens"],
+    "notes": "A first pass misread this as WooCommerce because image URLs contain /wp-content/. The storefront is Next.js; WordPress is only the media/content backend."
+  },
+
+  "typography": {
+    "body": {
+      "family": "Lato",
+      "stack": "\"Lato\", ui-sans-serif, system-ui, sans-serif",
+      "weights": [400, 700],
+      "source": "google-fonts",
+      "licensable": true
+    },
+    "display": {
+      "family": "Playfair Display",
+      "stack": "\"Playfair Display\", Georgia, serif",
+      "weights": [400, 500, 700],
+      "source": "google-fonts",
+      "licensable": true,
+      "usage": "loaded site-wide but NOT used for product titles — see product_title below"
+    },
+    "product_title": {
+      "family": "Lato",
+      "weight": 700,
+      "size_px": 30,
+      "letter_spacing_em": 0.025,
+      "verified_from": "<h1 class=\"text-2xl lg:text-3xl font-bold text-black mb-2 tracking-wide\"> with NO playfair class, inheriting html{font-family:var(--font-lato)}",
+      "warning": "Do not assume a luxury boutique uses a serif for product titles. This one does not. Rendering it as a serif was the single loudest tell in v1."
+    },
+    "root_font_size_px": 16,
+    "root_note": "Tailwind default, not overridden. Authoring a clone at 14px renders every chrome element ~13% small.",
+    "font_substituted": false
+  },
+
+  "color": {
+    "ink": "#0a0a0a",
+    "background": "#ffffff",
+    "gold": "#C4A05A",
+    "gold_deep": "#b0803a",
+    "cream": "#F7F4EF",
+    "border": "#e5e5e5",
+    "muted": "#737373",
+    "sale_accent": "#c0392b",
+    "extraction_method": "declared tokens in their compiled CSS, not sampled from a screenshot",
+    "confidence": "high"
+  },
+
+  "layout": {
+    "content_container_max_px": 1512,
+    "chrome_container_max_px": 1250,
+    "chrome_container_note": "header and footer sit in a NARROWER container than the product grid — this is what makes their logo read as inset",
+    "gutter_px": 24,
+    "announcement_bar_height_px": 48,
+    "header_height_px": 83,
+    "pdp_grid_split": "64/32 gallery to info",
+    "gallery": "2-column mosaic, images flow in order, cream placeholder background",
+    "button_style": "square corners, no radius; black fill for primary, white with black border for secondary; ~0.12em tracking, uppercase",
+    "radius_px": 0
+  },
+
+  "navigation": {
+    "primary": ["HOME", "MEN'S", "WOMEN'S", "STORES", "SALE"],
+    "utility_icons": ["search", "account", "cart"],
+    "breadcrumbs": true,
+    "breadcrumb_example": "Home › Mens › Jackets, Blazers & Suits › Jackets › Beige Blue Silk Jacket | Men's"
+  },
+
+  "copy": {
+    "announcement": "Free shipping on orders over $300",
+    "tagline": "Elevated Style For Every Occasion",
+    "footer_columns": {
+      "CUSTOMER CARE": ["Store Locations & Hours", "Online Returns & Exchanges", "Contact Us"],
+      "ABOUT BARCELINO": ["About Us", "Privacy & Terms", "Accessibility"]
+    },
+    "subscribe_placeholder": "Enter your email to get the latest promotions and news",
+    "follow_line": "Follow Us To Get The Latest Updates!",
+    "copyright": "Copyright © 2026 Barcelino Continental Corp. All rights reserved.",
+    "voice": "restrained, specification-forward, no exclamation marks; product copy leads with fabric and construction"
+  },
+
+  "commerce": {
+    "currency": "USD",
+    "price_format": "$1,675.00",
+    "price_range_format": "$1,465.00 – $1,585.00",
+    "payment_methods": ["stripe", "visa", "mastercard", "amex", "discover", "jcb"],
+    "size_systems": {
+      "mens_outerwear": {
+        "length": ["R", "S", "L"],
+        "numeric": [46, 48, 50, 52, 54, 56, 58],
+        "chart": {
+          "Centimeters": [48, 50, 52, 54, 56, 58, 60, 62, 64],
+          "Inches": [38, 40, 41, 42, 44, 46, 48, 50, 52],
+          "US": ["S", "M", "M-L", "L", "XL", "2XL", "3XL", "4XL", "5XL"]
+        }
+      }
+    }
+  },
+
+  "catalog": {
+    "products_found": 40,
+    "categories": ["mens", "womens", "whats-new-products", "sale"],
+    "url_pattern": "https://barcelino.com/product/{slug}/",
+    "hero_product_slug": "1225-jkt-100-silk",
+    "price_band_usd": [141.5, 3965.0],
+    "photography": "clean full-length model shots on white, plus fabric close-ups and editorial lifestyle frames"
+  },
+
+  "scraping": {
+    "structure_via": "firecrawl /v2/scrape (rawHtml + fullPage screenshot)",
+    "firecrawl_calls_used": 3,
+    "product_pages_via": "plain curl — individual PDPs return full SSR HTML, costing ZERO firecrawl credits",
+    "title_tag_carries": "name + price, e.g. \"Beige Blue Silk Jacket | Men's - $1,675.00\"",
+    "images_at": "https://barcelino.com/wp-content/uploads/...  (also reachable via /_next/image?url=)",
+    "bot_blocking": "none observed",
+    "category_pages_render_client_side": true,
+    "category_page_warning": "Category listings hydrate client-side — product name/price are NOT in the category page HTML. Enumerate product URLs from links, then fetch each PDP."
+  },
+
+  "provenance": {
+    "captured": "2026-08-06",
+    "ground_truth_screenshot": ".scrape/barcelino/assets/pdp.png",
+    "ground_truth_viewport": "1920x3398",
+    "viewport_warning": "Always screenshot the clone at the SAME viewport as ground truth. Comparing 1440 against 1920 manufactures false width findings.",
+    "fidelity_audits": 2,
+    "verdict": "credible_as_their_site = true"
+  }
+}
