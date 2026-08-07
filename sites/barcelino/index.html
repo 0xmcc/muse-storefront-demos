@@ -28,7 +28,9 @@
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;font-family:var(--font-body);color:var(--ink);background:#fff;font-size:14px;line-height:1.55}
+/* Their root is Tailwind's default 16px and html{font-family:var(--font-lato)}.
+   Authoring at 14px made the entire page render ~13% small against theirs. */
+body{margin:0;font-family:var(--font-body);color:var(--ink);background:#fff;font-size:16px;line-height:1.5}
 img{max-width:100%;display:block}
 a{color:inherit;text-decoration:none}
 button{font-family:inherit;cursor:pointer}
@@ -36,98 +38,103 @@ button{font-family:inherit;cursor:pointer}
    measured at ~1504px of content on a 1920 viewport. Match it, or the whole page
    reads subtly wider/narrower than theirs at the same window size. */
 .wrap{max-width:1512px;margin:0 auto;padding:0 24px}
+.hdr,footer .wrap{max-width:1250px}
 
 /* ---------- announcement ---------- */
-.announce{background:#000;color:#fff;text-align:center;font-size:12px;letter-spacing:.04em;padding:9px 12px}
+.announce{background:#000;color:#fff;text-align:center;font-size:13px;letter-spacing:.04em;padding:14px 12px}
 
 /* ---------- header ---------- */
 header{border-bottom:1px solid var(--border);background:#fff;position:sticky;top:0;z-index:40}
-.hdr{display:flex;align-items:center;justify-content:space-between;height:70px;gap:24px}
-.logo{padding-left:48px}
-.logo img{height:50px;width:auto}
-nav.main{display:flex;gap:30px;font-size:12.5px;letter-spacing:.09em;font-weight:700}
+.hdr{display:flex;align-items:center;justify-content:space-between;height:83px;gap:24px}
+/* No manual indent: the header/footer sit in their own narrower 1250px container,
+   which is what makes the logo read as inset against the wider product grid. */
+.logo img{height:55px;width:auto}
+nav.main{display:flex;gap:32px;font-size:14px;letter-spacing:.08em;font-weight:700}
 nav.main a:hover{color:var(--gold-deep)}
 .icons{display:flex;gap:20px;align-items:center;color:#333}
-.icons svg{width:18px;height:18px}
+.icons svg{width:21px;height:21px}
 .burger{display:none;background:none;border:0;padding:0}
 
 /* ---------- breadcrumb ---------- */
 .crumbrow{padding:18px 0 6px}
-.back{font-size:13px;color:#333;display:inline-flex;align-items:center;gap:3px;margin-bottom:10px}
+.back{font-size:14px;color:#333;display:inline-flex;align-items:center;gap:3px;margin-bottom:10px}
 .back svg{width:14px;height:14px;flex:none}
-.crumb{font-size:11.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.crumb{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .crumb .sep{opacity:.45}
 .crumb .cur{color:#333}
 
 /* ---------- product layout ---------- */
-.product{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:56px;padding:8px 0 64px;align-items:start}
+.product{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:56px;padding:8px 0 64px;align-items:start}
 .gallery{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .gallery figure{margin:0;background:var(--cream)}
 .gallery img{width:100%;height:100%;object-fit:cover}
 
-.ptitle{font-family:var(--font-display);font-size:27px;font-weight:500;margin:0 0 6px;line-height:1.25}
+/* Verified from their markup: <h1 class="text-2xl lg:text-3xl font-bold tracking-wide">
+   with NO playfair class, inheriting html{font-family:var(--font-lato)}. Their product
+   title is Lato BOLD. Rendering it as a serif was the loudest tell on the page. */
+.ptitle{font-family:var(--font-body);font-size:30px;font-weight:700;letter-spacing:.025em;margin:0 0 8px;line-height:1.3}
 .pricerow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:22px}
-.price{font-size:19px;font-weight:400}
+.price{font-size:21px;font-weight:400}
 .aibadge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;letter-spacing:.06em;
   color:var(--gold-deep);background:var(--cream);border:1px solid rgba(196,160,90,.45);padding:4px 9px;border-radius:999px}
 
-.optlabel{font-size:10.5px;font-weight:700;letter-spacing:.11em;color:#555;margin:18px 0 8px}
-.selectsize{font-size:12px;color:#333;margin-bottom:4px}
+.optlabel{font-size:11.5px;font-weight:700;letter-spacing:.11em;color:#555;margin:18px 0 8px}
+.selectsize{font-size:13.5px;color:#333;margin-bottom:4px}
 .selectsize .req{color:var(--sale)}
 .swatches{display:flex;flex-wrap:wrap;gap:7px}
-.sw{min-width:38px;height:38px;padding:0 10px;border:1px solid var(--border);background:#fff;font-size:12.5px;
+.sw{min-width:42px;height:42px;padding:0 11px;border:1px solid var(--border);background:#fff;font-size:13.5px;
   display:flex;align-items:center;justify-content:center;transition:.12s}
 .sw:hover:not(.off){border-color:#000}
 .sw.on{background:#000;color:#fff;border-color:#000}
 .sw.off{color:#c9c9c9;background:#fafafa;cursor:not-allowed}
 
 details.acc{border-top:1px solid var(--border);padding:14px 0}
-details.acc summary{list-style:none;cursor:pointer;font-size:11.5px;font-weight:700;letter-spacing:.09em;
+details.acc summary{list-style:none;cursor:pointer;font-size:13px;font-weight:700;letter-spacing:.09em;
   display:flex;justify-content:space-between;align-items:center}
 details.acc summary::-webkit-details-marker{display:none}
 details.acc summary::after{content:"⌄";font-size:15px;color:#888;transition:.2s}
 details.acc[open] summary::after{transform:rotate(180deg)}
-details.acc .body{padding-top:12px;font-size:12.5px;color:#444;line-height:1.7}
+details.acc .body{padding-top:12px;font-size:14px;color:#444;line-height:1.7}
 .sizechart summary{color:var(--sale)}
-table.sizes{border-collapse:collapse;width:100%;font-size:11px;margin-top:10px}
+table.sizes{border-collapse:collapse;width:auto;font-size:12px;margin-top:10px}
 table.sizes th,table.sizes td{border:1px solid #333;padding:5px 6px;text-align:center;background:#fff}
 table.sizes th{font-weight:700;text-align:left;white-space:nowrap}
 
-.cartrow{display:flex;gap:12px;margin:24px 0 10px}
+.cartrow{display:flex;gap:12px;margin:26px 0 10px;max-width:78%}
 .qty{width:74px;height:48px;border:1px solid var(--border);text-align:center;font-size:14px;font-family:inherit}
-.btn{height:48px;flex:1;border:1px solid #000;background:#000;color:#fff;font-size:12px;font-weight:700;
+.btn{height:52px;flex:1;border:1px solid #000;background:#000;color:#fff;font-size:12px;font-weight:700;
   letter-spacing:.12em;transition:.15s}
 .btn:hover{background:#222}
 .btn.ghost{background:#fff;color:#000}
 .btn.ghost:hover{background:var(--cream)}
-.tryon-cta{width:100%;margin-top:2px}
-.tryon-note{font-size:11.5px;color:var(--muted);text-align:center;margin:8px 0 0}
-.sku{font-size:11px;color:#999;letter-spacing:.05em;margin-top:20px}
+.tryon-cta{width:78%;margin-top:2px}
+.tryon-note{font-size:12.5px;max-width:78%;color:var(--muted);text-align:center;margin:8px 0 0}
+.sku{font-size:12px;color:#999;letter-spacing:.05em;margin-top:20px}
 
 /* ---------- complete the look ---------- */
 .ctl{border-top:1px solid var(--border);padding:44px 0 60px}
-.ctl h2{font-family:var(--font-display);font-size:19px;font-weight:500;text-align:center;letter-spacing:.02em;margin:0 0 26px}
+.ctl h2{font-family:var(--font-body);font-size:15px;font-weight:400;text-align:center;letter-spacing:.14em;text-transform:uppercase;margin:0 0 30px}
 .ctlgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
 .card img{aspect-ratio:3/4;object-fit:cover;background:var(--cream)}
-.card .nm{font-size:12px;margin-top:10px;line-height:1.45}
-.card .pr{font-size:12px;color:#555;margin-top:3px}
+.card .nm{font-size:13px;margin-top:10px;line-height:1.45}
+.card .pr{font-size:13px;color:#555;margin-top:3px}
 
 /* ---------- footer ---------- */
-footer{border-top:1px solid var(--border);background:#fff;padding:44px 0 22px;font-size:12.5px}
+footer{border-top:1px solid var(--border);background:#fff;padding:50px 0 24px;font-size:14px}
 .fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:36px}
-.fgrid h3{font-size:11px;letter-spacing:.11em;font-weight:700;margin:0 0 14px}
+.fgrid h3{font-size:12.5px;letter-spacing:.11em;font-weight:700;margin:0 0 14px}
 .fgrid a{display:block;color:#555;margin-bottom:7px}
 .fgrid a:hover{color:var(--gold-deep)}
 .sub{display:flex;gap:0;max-width:420px}
-.sub input{flex:1;height:38px;border:1px solid var(--border);padding:0 12px;font-family:inherit;font-size:12px}
-.sub button{height:38px;padding:0 20px;background:#000;color:#fff;border:0;font-size:12px}
-.copy{margin-top:34px;padding-top:16px;border-top:1px solid var(--border);color:#888;font-size:11.5px;
+.sub input{flex:1;height:42px;border:1px solid var(--border);padding:0 13px;font-family:inherit;font-size:13px}
+.sub button{height:42px;padding:0 22px;background:#000;color:#fff;border:0;font-size:13px}
+.copy{margin-top:36px;padding-top:18px;border-top:1px solid var(--border);color:#888;font-size:12.5px;
   display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .pay{display:inline-flex;align-items:center;gap:6px}
 .pay .cc{width:30px;height:19px;display:inline-block;flex:none}
 .follow{color:#666;margin-top:14px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-.soc{width:28px;height:28px;border-radius:50%;background:#000;display:inline-flex;align-items:center;justify-content:center;flex:none}
-.soc svg{width:16px;height:16px}
+.soc{width:30px;height:30px;border-radius:50%;background:#000;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.soc svg{width:16px;height:16px;display:block;margin:auto}
 .soc:hover{background:var(--gold-deep)}
 
 /* ---------- Muse demo disclosure (D4 — present, quiet) ---------- */
