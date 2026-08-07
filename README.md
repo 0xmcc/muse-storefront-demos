@@ -22,9 +22,12 @@ Pre-skill. One site built by hand to learn the shape before freezing it into a s
 ## Repo layout
 ```
 docs/            decisions and integration contracts — canonical memory
-sites/<brand>/   generated demo sites, self-contained and static
-  index.html     the whole demo: page, try-on flow, disclosure bar
-  assets/        logo, product images, shopper photo, baked try-on frame
+sites/<brand>/   generated demo sites
+  brand.json     the reusable style profile (D14) — read this before rebuilding
+  index.html     product page with try-on entry point
+  tryon.html     the full-screen try-on studio
+  assets/        logo, product images, catalog, shopper photo
+scripts/         generate_tryon.py (the Muse seam) · serve.py (proxy) · build_catalog.py
 demos.csv        the run ledger / control panel
 .scrape/<brand>/ raw FireCrawl output + ground-truth screenshots (gitignored)
 ```
@@ -59,9 +62,9 @@ QA hooks: `?gen=1` freezes the generating overlay without spending a call;
 7. **Wire live try-on** (D12) through `scripts/serve.py`, which calls
    `POST /api/outfits/tryon` passing images as base64 `data:` URLs (D11 — not optional,
    see TRYON-INTEGRATION.md). Credentials stay server-side (D13).
-7. **QA gate** (D7/#41) — screenshot every state, compare against the real page, verdict
+8. **QA gate** (D7/#41) — screenshot every state, compare against the real page, verdict
    pass / near-miss / abort.
-8. **Publish + log** — a row in `demos.csv` either way (D9/#42).
+9. **Publish + log** — a row in `demos.csv` either way (D9/#42).
 
 ## QA state hooks
 Any demo page supports `?state=` so every screen is screenshottable headlessly with no
