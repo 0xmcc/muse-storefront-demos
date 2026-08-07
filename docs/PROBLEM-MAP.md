@@ -105,7 +105,8 @@ Value drivers: DO=Dream Outcome · LOA=Likelihood of Achievement · TD=Time Dela
 | 47 | A ~16s model cannot feel "nearly instantaneous" on its own | TD | CONTRACT (D15) | Partly solved by memoising requested looks + same-frame feedback. NOT solved by speculative generation — that trades the user's money for the illusion. First swap to a new garment is genuinely ~16s and that is honest |
 | 50 | **An optimisation can silently reintroduce a rejected decision** | LOA | TRIGGER | "Background prefetch" was pre-generation renamed. Before adding any speed trick, ask: does this spend a call the user did not ask for? |
 | 48 | Generated looks read as "AI artwork" rather than campaign photography | LOA | CONTRACT | Fixed in the PROMPT, not the UI: a house-style editorial brief (lighting, drape, tailoring, identity) lives in `serve.py` as EDITORIAL_NOTES |
-| 49 | Portrait generations sit in a landscape well, leaving a wide cream mat | ES | EXAMPLE | Accepted: matted reads as a gallery plate, and cropping would cut off either the face or the tailoring. Revisit if we can control output aspect |
+| 49 | Portrait generations sit in a landscape well, leaving a wide cream mat | ES | EXAMPLE | **SOLVED 2026-08-07.** The try-on model returns 768x1376 portrait regardless of what the prompt asks for — aspect is not promptable. Instead of cropping, the same frame is blurred, scaled and used as an ambient backdrop with the untouched portrait composited over it. Frame reads full-bleed and wide; nothing is cropped away |
+| 51 | A tab bar with no product behind it is decoration | DO | CONTRACT | The reference wants 7 categories. Rather than fake them, the catalog was widened to 19 real products across jackets / blazers / knitwear / shirts / trousers / leather. Never ship a tab that opens onto nothing |
 
 ## Output contract (v1)
 Every run produces exactly two things:

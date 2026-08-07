@@ -36,12 +36,15 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # house style every generated look is asked for, so results read as editorial
 # photography rather than AI artwork.
 EDITORIAL_NOTES = (
-    "Luxury fashion campaign photography. Full-length three-quarter pose, relaxed and "
-    "confident. Soft directional studio light with gentle falloff, natural skin tones, "
-    "shallow depth of field. Fabric drapes naturally with believable weight and tailoring; "
-    "shoulder seams sit correctly; lapels roll rather than crease. Muted neutral backdrop. "
-    "Preserve the person's exact facial features, hair and complexion. Editorial, "
-    "understated, no visible logos or text."
+    "WIDE HORIZONTAL LANDSCAPE composition, 16:9 aspect. Luxury fashion campaign "
+    "photography shot inside an upscale menswear boutique: warm wood and plaster, rails of "
+    "garments softly out of focus behind, arched doorway, soft daylight from the side. "
+    "Subject framed from mid-thigh up, standing three-quarter to camera, relaxed and "
+    "confident, positioned centre of frame with the boutique interior visible either side. "
+    "Shallow depth of field, natural skin tones, soft directional light. Fabric drapes with "
+    "believable weight and tailoring; shoulder seams sit correctly; lapels roll rather than "
+    "crease. Preserve the person's exact facial features, hair and complexion. Editorial and "
+    "understated. No visible logos or text."
 )
 
 # Public demo, live generation, real money per call. Cap it per IP (#44).

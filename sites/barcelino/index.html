@@ -200,123 +200,154 @@ body{padding-bottom:34px}
 
 /* ============================================================
    VIRTUAL TRY-ON STUDIO
-   Interaction model borrowed from L'Oreal's virtual try-on; the
-   visual language is Barcelino's own — hairlines instead of cards,
-   whitespace instead of chrome, square corners, Playfair for the
-   one display line, gold used once. Deliberately NOT a sparkle-and-
-   gradient AI panel; the technology is meant to disappear.
+   Built to the approved design reference: warm-grey modal shell,
+   white rounded cards, 272px / fluid panel split, landscape look
+   frame, 7 category tabs, 6-up carousel, action bar outside the
+   cards. Measurements taken off the reference, not invented.
    ============================================================ */
-.studio-scrim{position:fixed;inset:0;z-index:100;background:rgba(28,26,24,.42);
-  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
-  display:none;align-items:center;justify-content:center;padding:22px;
-  opacity:0;transition:opacity .42s cubic-bezier(.4,0,.2,1)}
+.studio-scrim{position:fixed;inset:0;z-index:100;background:rgba(168,165,161,.42);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  display:none;align-items:center;justify-content:center;padding:20px;
+  opacity:0;transition:opacity .4s cubic-bezier(.4,0,.2,1)}
 .studio-scrim.show{display:flex}
 .studio-scrim.in{opacity:1}
-.studio{background:#fff;width:100%;max-width:1180px;max-height:95vh;overflow:auto;
-  padding:32px 44px 24px;position:relative;
-  transform:translateY(14px) scale(.994);opacity:0;
-  transition:transform .5s cubic-bezier(.22,1,.36,1),opacity .45s ease-out}
+.studio{background:#f4f3f1;width:100%;max-width:1180px;max-height:96vh;overflow:auto;
+  border-radius:10px;padding:26px 24px 16px;position:relative;
+  box-shadow:0 26px 74px rgba(0,0,0,.18);
+  transform:translateY(12px) scale(.995);opacity:0;
+  transition:transform .5s cubic-bezier(.22,1,.36,1),opacity .42s ease-out}
 .studio-scrim.in .studio{transform:none;opacity:1}
-.studio .close{position:absolute;top:26px;right:30px;background:none;border:0;padding:6px;
-  color:#9a958d;line-height:0;transition:color .25s}
-.studio .close:hover{color:var(--ink)}
-.studio .close svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.3;fill:none}
+.studio .close{position:absolute;top:26px;right:26px;background:none;border:0;padding:6px;
+  color:#8d8983;line-height:0;transition:color .22s}
+.studio .close:hover{color:#1c1a18}
+.studio .close svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.4;fill:none}
 
-.studio-head{text-align:center;margin-bottom:26px}
-.studio-head h2{font-family:var(--font-display);font-size:28px;font-weight:400;
-  letter-spacing:.015em;margin:0 0 14px}
-.studio-head .rule{width:46px;height:1px;background:var(--gold);margin:0 auto}
+.studio-head{text-align:center;margin-bottom:18px}
+.studio-head h2{font-family:var(--font-display);font-size:21px;font-weight:400;
+  text-transform:uppercase;letter-spacing:.14em;color:#1c1a18;margin:0}
+.studio-head p{font-size:13px;color:#86827d;margin:7px 0 0}
 
-.slabel{font-size:10px;letter-spacing:.24em;color:#a09a91;text-align:center;margin-bottom:16px}
-
-/* two equal panels — the user stays grounded in their own photo */
-.studio-panes{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:44px;align-items:start}
+/* panels — reference split is roughly 1 : 2.9, not equal */
+.studio-panes{display:grid;grid-template-columns:272px minmax(0,1fr);gap:20px;align-items:stretch}
 .studio-panes>*{min-width:0}
+.pcard{background:#fff;border:1px solid #e9e6e2;border-radius:8px;padding:16px;
+  display:flex;flex-direction:column}
+.slabel{font-size:10.5px;letter-spacing:.13em;color:#4a4642;text-align:center;margin-bottom:13px}
 
-.well{background:var(--cream);overflow:hidden;position:relative;
-  height:clamp(270px,38vh,398px);display:flex;align-items:center;justify-content:center}
-.well img{width:100%;height:100%;object-fit:cover}
+/* left ---------------------------------------------------- */
+.photowrap{position:relative}
+.photo{aspect-ratio:3/5;background:var(--cream);overflow:hidden;border-radius:6px}
+.photo img{width:100%;height:100%;object-fit:cover}
+.change{position:absolute;left:50%;transform:translateX(-50%);bottom:20px;white-space:nowrap;
+  height:40px;padding:0 22px;border:0;border-radius:999px;background:#1c1a18;color:#fff;
+  font-size:10.5px;font-weight:600;letter-spacing:.12em;display:flex;align-items:center;gap:9px;
+  box-shadow:0 3px 14px rgba(0,0,0,.28);transition:background .22s}
+.change:hover{background:#332f2b}
+.change svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.5}
 
-/* the generated look: contained so tailoring is never cropped away (#45) */
-.look{width:auto!important;height:100%;max-width:100%;object-fit:contain;
-  opacity:0;transform:scale(1.012);
-  transition:opacity .62s cubic-bezier(.4,0,.2,1),transform 1.1s cubic-bezier(.22,1,.36,1)}
+.readout{margin-top:20px;display:flex;flex-direction:column;gap:14px}
+.readout .row{display:flex;gap:11px;align-items:flex-start}
+.readout .mark{width:18px;height:18px;flex:none;margin-top:1px}
+.readout .mark circle{stroke:#3f9e5a;fill:none;stroke-width:1.5}
+.readout .mark path{stroke:#3f9e5a;fill:none;stroke-width:1.7}
+.readout b{display:block;font-size:12.5px;font-weight:400;color:#1c1a18;line-height:1.35}
+.readout span{display:block;font-size:11.5px;color:#8d8983}
+.privacy{margin-top:auto;padding-top:18px;border-top:1px solid #eceae7;
+  display:flex;gap:11px;align-items:flex-start;font-size:11.5px;color:#8d8983;line-height:1.5}
+.privacy svg{width:15px;height:15px;flex:none;margin-top:2px;stroke:#a5a09a;fill:none;stroke-width:1.5}
+
+/* right --------------------------------------------------- */
+.stage{aspect-ratio:1.9;background:#eceae7;border-radius:6px;overflow:hidden;position:relative;
+  display:flex;align-items:center;justify-content:center}
+/* The try-on model returns 768x1376 PORTRAIT no matter what the prompt asks for,
+   so a landscape frame can only ever crop it. Instead of cropping the subject
+   (which cost us either the face or the tailoring), the same frame is blurred and
+   scaled to fill the width as an ambient backdrop, with the untouched portrait
+   composited over it. The frame reads full-bleed and wide; nothing is lost. */
+.look-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  filter:blur(46px) saturate(.72) brightness(1.14);transform:scale(1.5);opacity:0;
+  transition:opacity .7s cubic-bezier(.4,0,.2,1)}
+.look-bg.in{opacity:.8}
+.look{position:relative;z-index:1;width:auto;height:100%;max-width:100%;object-fit:contain;
+  opacity:0;transform:scale(1.015);
+  transition:opacity .6s cubic-bezier(.4,0,.2,1),transform 1.1s cubic-bezier(.22,1,.36,1);
+  box-shadow:0 0 40px rgba(0,0,0,.13)}
 .look.in{opacity:1;transform:none}
+.expand{position:absolute;right:14px;bottom:14px;width:34px;height:34px;border:0;border-radius:8px;
+  background:rgba(28,26,24,.62);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;transition:background .22s}
+.expand:hover{background:rgba(28,26,24,.85)}
+.expand svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:1.6}
+.stage .fail{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:0 40px;font-size:12.5px;color:#a8412f;line-height:1.7}
 
-.changerow{margin-top:16px;text-align:center}
-.change{height:44px;padding:0 30px;border:1px solid var(--ink);background:#fff;
-  font-size:11px;font-weight:700;letter-spacing:.16em;transition:.22s}
-.change:hover{background:var(--ink);color:#fff}
-
-.readout{margin-top:18px;padding-top:15px;border-top:1px solid var(--border);
-  display:flex;flex-direction:column;gap:10px}
-.readout div{display:flex;align-items:center;gap:10px;font-size:11.5px;color:#4a4640}
-.readout .mark{width:13px;height:13px;flex:none;stroke:var(--gold);fill:none;stroke-width:1.6}
-.readout em{margin-left:auto;font-style:normal;font-size:10px;letter-spacing:.13em;color:#a09a91}
-
-/* fitting veil — elegance over instrumentation. No percentage, no bar. */
-.fitting{position:absolute;inset:0;background:rgba(247,244,239,.97);
+.fitting{position:absolute;inset:0;background:rgba(240,238,235,.96);
   display:flex;align-items:center;justify-content:center;
-  opacity:0;pointer-events:none;transition:opacity .45s ease}
+  opacity:0;pointer-events:none;transition:opacity .45s ease;overflow:hidden}
 .fitting.on{opacity:1;pointer-events:auto}
-.fitting .phrase{font-family:var(--font-display);font-size:19px;font-style:italic;
-  color:#8c8479;letter-spacing:.01em;opacity:0;transition:opacity .6s ease}
+.fitting .phrase{font-family:var(--font-display);font-size:18px;font-style:italic;
+  color:#8c8479;opacity:0;transition:opacity .6s ease;z-index:2}
 .fitting .phrase.in{opacity:1}
 .fitting::after{content:"";position:absolute;inset:0;
-  background:linear-gradient(105deg,transparent 32%,rgba(255,255,255,.7) 50%,transparent 68%);
+  background:linear-gradient(105deg,transparent 32%,rgba(255,255,255,.72) 50%,transparent 68%);
   transform:translateX(-100%);animation:sheen 2.6s cubic-bezier(.4,0,.2,1) infinite}
 @keyframes sheen{to{transform:translateX(100%)}}
 
-/* rail */
-.rail-tabs{display:flex;gap:30px;justify-content:center;margin:26px 0 0;
-  border-bottom:1px solid var(--border);padding-bottom:0}
-.rail-tab{background:none;border:0;padding:0 0 13px;font-size:10.5px;letter-spacing:.2em;
-  color:#a09a91;position:relative;transition:color .25s}
-.rail-tab::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;
-  background:var(--ink);transform:scaleX(0);transition:transform .35s cubic-bezier(.22,1,.36,1)}
-.rail-tab.on{color:var(--ink)}
+.rail-tabs{display:flex;justify-content:space-between;gap:10px;margin-top:16px;padding-right:2px;
+  border-bottom:1px solid #eceae7;overflow-x:auto;scrollbar-width:none}
+.rail-tabs::-webkit-scrollbar{display:none}
+.rail-tab{background:none;border:0;padding:0 0 11px;font-size:10px;letter-spacing:.09em;
+  color:#8d8983;white-space:nowrap;position:relative;transition:color .22s}
+.rail-tab::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:#1c1a18;
+  transform:scaleX(0);transition:transform .32s cubic-bezier(.22,1,.36,1)}
+.rail-tab.on{color:#1c1a18;font-weight:700}
 .rail-tab.on::after{transform:scaleX(1)}
 
-.rail-wrap{position:relative;margin-top:22px;min-width:0}
-.rail{display:flex;gap:22px;overflow-x:auto;min-width:0;scroll-behavior:smooth;padding-bottom:6px;scrollbar-width:none}
+.rail-wrap{position:relative;margin-top:16px;min-width:0}
+.rail{display:flex;gap:14px;overflow-x:auto;scroll-behavior:smooth;min-width:0;scrollbar-width:none}
 .rail::-webkit-scrollbar{display:none}
-.piece{flex:0 0 112px;background:none;border:0;padding:0;text-align:left;position:relative;
-  opacity:.62;transition:opacity .3s}
-.piece:hover,.piece.on{opacity:1}
-.piece .shot,.piece .nm,.piece .pr{display:block}
-.piece .shot{aspect-ratio:3/4;background:var(--cream);overflow:hidden}
+.piece{flex:0 0 118px;background:none;text-align:left;position:relative;transition:.25s}
+.piece .shot,.piece .house,.piece .nm,.piece .pr{display:block}
+.piece .shot{aspect-ratio:8/9;background:#f2f0ed;border-radius:4px;overflow:hidden}
 .piece .shot img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.22,1,.36,1)}
-.piece:hover .shot img{transform:scale(1.035)}
-.piece .nm{font-size:10.5px;line-height:1.4;margin-top:10px;min-height:29px;color:#2a2723}
-.piece .pr{font-size:10.5px;color:#7b756c;margin-top:3px}
-.piece::after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:1px;background:var(--ink);
-  transform:scaleX(0);transform-origin:left;transition:transform .4s cubic-bezier(.22,1,.36,1)}
-.piece.on::after{transform:scaleX(1)}
-.railbtn{position:absolute;top:32%;width:30px;height:30px;background:#fff;border:1px solid var(--border);
-  display:flex;align-items:center;justify-content:center;z-index:3;transition:.22s}
-.railbtn:hover{border-color:var(--ink)}
+.piece:hover .shot img{transform:scale(1.04)}
+.piece .heart{position:absolute;top:14px;right:14px;width:15px;height:15px;
+  stroke:#4a4642;fill:none;stroke-width:1.5;opacity:.85}
+.piece.liked .heart{fill:#1c1a18;stroke:#1c1a18}
+.piece .house{font-size:9.5px;font-weight:700;letter-spacing:.05em;color:#1c1a18;margin-top:9px}
+.piece .nm{font-size:10.5px;color:#6e6a65;line-height:1.4;margin-top:2px;min-height:29px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.piece .pr{font-size:10.5px;color:#1c1a18;margin-top:2px}
+.piece{border:1px solid transparent;border-radius:5px;padding:6px}
+.piece.on{border-color:#cfcac3;background:#fbfaf9}
+.railbtn{position:absolute;top:34%;width:30px;height:30px;border-radius:50%;background:#fff;
+  border:1px solid #e5e2de;box-shadow:0 1px 5px rgba(0,0,0,.09);
+  display:flex;align-items:center;justify-content:center;z-index:3;transition:.2s}
+.railbtn:hover{border-color:#b9b4ad}
 .railbtn.l{left:-15px}.railbtn.r{right:-15px}
-.railbtn svg{width:12px;height:12px;stroke:#3a3630;fill:none;stroke-width:1.6}
+.railbtn svg{width:11px;height:11px;stroke:#3a3630;fill:none;stroke-width:1.8}
 
-.studio-actions{display:flex;gap:14px;justify-content:center;margin-top:22px;
-  padding-top:18px;border-top:1px solid var(--border)}
-.sact{height:46px;min-width:196px;border:1px solid var(--ink);background:#fff;
-  font-size:11px;font-weight:700;letter-spacing:.16em;display:flex;align-items:center;
-  justify-content:center;gap:10px;transition:.22s}
-.sact:hover:not(:disabled){background:var(--cream)}
-.sact.solid{background:var(--ink);color:#fff}
-.sact.solid:hover:not(:disabled){background:#2c2822}
-.sact:disabled{opacity:.32;cursor:not-allowed}
-.sact svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5}
-.studio .fail{font-size:12px;color:#a8412f;text-align:center;padding:0 30px;line-height:1.7}
+/* action bar sits on the shell, outside the cards */
+.studio-actions{display:flex;gap:16px;justify-content:center;margin-top:18px;
+  padding-top:16px;border-top:1px solid #e3e0dc}
+.sact{height:46px;min-width:212px;border-radius:4px;border:1px solid #d9d5d0;background:#fff;
+  color:#1c1a18;font-size:11px;font-weight:600;letter-spacing:.1em;
+  display:flex;align-items:center;justify-content:center;gap:10px;transition:.2s}
+.sact:hover:not(:disabled){background:#faf9f8;border-color:#b9b4ad}
+.sact.solid{background:#1c1a18;border-color:#1c1a18;color:#fff}
+.sact.solid:hover:not(:disabled){background:#332f2b}
+.sact:disabled{opacity:.34;cursor:not-allowed}
+.sact svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.5}
+.disclaimer{margin:13px 0 0;text-align:center;font-size:11px;color:#a5a09a}
 
 @media(max-width:960px){
-  .studio{padding:30px 22px 22px}
-  .studio-panes{grid-template-columns:1fr;gap:30px}
-  .well{height:min(52vh,420px)}
-  .studio-head h2{font-size:25px}
-  .studio-actions{flex-direction:column}.sact{width:100%;min-width:0}
-  .rail-tabs{gap:22px;justify-content:flex-start;overflow-x:auto}
+  .studio{padding:24px 16px 16px}
+  .studio-panes{grid-template-columns:1fr;gap:16px}
+  .photo{aspect-ratio:4/5}
+  .stage{aspect-ratio:4/3}
+  .studio-head h2{font-size:17px}
+  .studio-actions{flex-direction:column;gap:10px}.sact{width:100%;min-width:0}
+  .rail-tabs{justify-content:flex-start;gap:22px}
 }
 
 /* ---------- responsive ---------- */
@@ -484,28 +515,52 @@ body{padding-bottom:34px}
   <button class="close" id="close" aria-label="Close">
     <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
 
-  <div class="studio-head"><h2>Virtual Try-On</h2><div class="rule"></div></div>
+  <div class="studio-head">
+    <h2>Virtual Try-On</h2>
+    <p>See how it looks on you</p>
+  </div>
 
   <div class="studio-panes">
-    <div>
+    <!-- YOUR PHOTO -->
+    <div class="pcard">
       <div class="slabel">YOUR PHOTO</div>
-      <div class="well"><img id="me" src="assets/shopper.jpg" alt="Your photo"></div>
-      <div class="changerow"><button class="change" id="change">CHANGE PHOTO</button></div>
+      <div class="photowrap">
+        <div class="photo"><img id="me" src="assets/shopper.jpg" alt="Your photo"></div>
+        <button class="change" id="change">
+          <svg viewBox="0 0 24 24"><path d="M3 8.5A1.5 1.5 0 014.5 7h2.2l1.1-2h8.4l1.1 2h2.2A1.5 1.5 0 0121 8.5v9A1.5 1.5 0 0119.5 19h-15A1.5 1.5 0 013 17.5z"/><circle cx="12" cy="12.6" r="3.4"/></svg>
+          CHANGE PHOTO
+        </button>
+      </div>
       <input type="file" id="file" accept="image/*" hidden>
+
       <div class="readout">
-        <div><svg class="mark" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>
-          <span id="r1">Photo ready</span><em id="r1e">SAMPLE</em></div>
-        <div><svg class="mark" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>
-          <span>Fitted to your proportions</span><em>READY</em></div>
+        <div class="row">
+          <svg class="mark" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.4"/><path d="M8 12.4l2.7 2.7L16.2 9.6"/></svg>
+          <div><b id="r1">Photo uploaded</b><span id="r1s">Complete</span></div>
+        </div>
+        <div class="row">
+          <svg class="mark" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.4"/><path d="M8 12.4l2.7 2.7L16.2 9.6"/></svg>
+          <div><b>AI model ready</b><span>High accuracy</span></div>
+        </div>
+      </div>
+
+      <div class="privacy">
+        <svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="9.5" rx="1.6"/><path d="M8.2 10.5V7.8a3.8 3.8 0 017.6 0v2.7"/></svg>
+        <span>Your photo is private and only used for try-on</span>
       </div>
     </div>
 
-    <div>
+    <!-- THE LOOK -->
+    <div class="pcard">
       <div class="slabel">THE LOOK</div>
-      <div class="well">
+      <div class="stage">
+        <img class="look-bg" id="lookbg" alt="" aria-hidden="true" hidden>
         <img class="look" id="look" alt="" hidden>
         <div class="fail" id="fail" hidden></div>
         <div class="fitting" id="fitting"><div class="phrase" id="phrase">Preparing your fitting</div></div>
+        <button class="expand" id="expand" aria-label="View larger">
+          <svg viewBox="0 0 24 24"><path d="M9 4H4v5M15 4h5v5M15 20h5v-5M9 20H4v-5"/></svg>
+        </button>
       </div>
 
       <div class="rail-tabs" id="tabs"></div>
@@ -522,6 +577,7 @@ body{padding-bottom:34px}
     <button class="sact" id="sSave" disabled><svg viewBox="0 0 24 24"><path d="M20.8 8.6a5 5 0 00-8.8-3 5 5 0 00-8.8 3c0 5 8.8 10.4 8.8 10.4s8.8-5.4 8.8-10.4z"/></svg>SAVE LOOK</button>
     <button class="sact" id="sShare" disabled><svg viewBox="0 0 24 24"><path d="M12 16V4M8 8l4-4 4 4M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>SHARE</button>
   </div>
+  <p class="disclaimer">Results may vary. Images are AI-generated.</p>
  </div>
 </div>
 
@@ -558,6 +614,7 @@ const CATALOG = [
     "short": "Beige Blue Silk Jacket",
     "price": "$1,675.00",
     "image": "assets/catalog/1225-jkt-100-silk.jpg",
+    "house": "BARCELINO",
     "category": "Jacket",
     "tags": [
       "new",
@@ -570,6 +627,7 @@ const CATALOG = [
     "short": "Cream Beige Silk Blend Plaid Blazer",
     "price": "$1,765.00",
     "image": "assets/catalog/1221-jkt-55-silk-plaid.jpg",
+    "house": "BARCELINO",
     "category": "Blazer",
     "tags": [
       "new",
@@ -582,6 +640,7 @@ const CATALOG = [
     "short": "Light Beige Silk Linen Chevron Blazer Jacket",
     "price": "$1,585.00",
     "image": "assets/catalog/1252-jkt-maxi-chevron.jpg",
+    "house": "BARCELINO",
     "category": "Blazer",
     "tags": [
       "new",
@@ -594,6 +653,7 @@ const CATALOG = [
     "short": "Light Gray Blazer Silk Linen Jacket",
     "price": "$1,685.00",
     "image": "assets/catalog/1400-jkt-silklino-max-chevron.jpg",
+    "house": "BARCELINO",
     "category": "Blazer",
     "tags": [
       "new",
@@ -606,6 +666,7 @@ const CATALOG = [
     "short": "Purple Silk-Blend Basketweave Blazer",
     "price": "$1,675.00",
     "image": "assets/catalog/5108-jkt-10-silk-bsktwv.jpg",
+    "house": "BARCELINO",
     "category": "Blazer",
     "tags": [
       "new",
@@ -614,10 +675,11 @@ const CATALOG = [
   },
   {
     "slug": "2367130-blzr-l-p-sup150-sb2pk",
-    "name": "Ravazzolo Blue Italian Wool & Silk Blazer | Made in Italy",
-    "short": "Ravazzolo Blue Italian Wool & Silk Blazer | Made in Italy",
+    "name": "Ravazzolo Blue Italian Wool & Silk Blazer",
+    "short": "Ravazzolo Blue Italian Wool & Silk Blazer",
     "price": "$3,950.00",
     "image": "assets/catalog/2367130-blzr-l-p-sup150-sb2pk.jpg",
+    "house": "RAVAZZOLO",
     "category": "Blazer",
     "tags": [
       "new",
@@ -630,6 +692,7 @@ const CATALOG = [
     "short": "Blue Men's Travel Blazer",
     "price": "$1,465.00",
     "image": "assets/catalog/1118-blzr-travel-metal-butns.jpg",
+    "house": "BARCELINO",
     "category": "Blazer",
     "tags": [
       "new",
@@ -642,14 +705,159 @@ const CATALOG = [
     "short": "Dark Brown Leather Jacket",
     "price": "$1,465.00 \u2013 $1,585.00",
     "image": "assets/catalog/25953-lthr-zip-bsktwave.jpg",
+    "house": "BARCELINO",
     "category": "Leather Jacket",
     "tags": [
       "new",
       "leather"
     ]
+  },
+  {
+    "slug": "234120-polo-pinheadmercerized",
+    "name": "Denim Blue Microdot Polo",
+    "short": "Denim Blue Microdot Polo",
+    "price": "$168.00",
+    "image": "assets/catalog/234120-polo-pinheadmercerized.jpg",
+    "house": "BARCELINO",
+    "category": "Polo",
+    "tags": [
+      "new",
+      "knitwear"
+    ]
+  },
+  {
+    "slug": "800822-polo-3bot-knit-shouldr",
+    "name": "Lilac Purple Cotton/Modal Knit Polo",
+    "short": "Lilac Purple Cotton/Modal Knit Polo",
+    "price": "$185.00 \u2013 $195.00",
+    "image": "assets/catalog/800822-polo-3bot-knit-shouldr.jpg",
+    "house": "BARCELINO",
+    "category": "Polo",
+    "tags": [
+      "new",
+      "knitwear"
+    ]
+  },
+  {
+    "slug": "70112-crew-cotton-t-pkt",
+    "name": "Black Cotton Tee",
+    "short": "Black Cotton Tee",
+    "price": "$138.00 \u2013 $158.00",
+    "image": "assets/catalog/70112-crew-cotton-t-pkt.jpg",
+    "house": "BARCELINO",
+    "category": "T-Shirt",
+    "tags": [
+      "new",
+      "shirts"
+    ]
+  },
+  {
+    "slug": "8150-ss-shirt-dbl-band-collar",
+    "name": "Cotton Navy Blue Banded Tee Shirt",
+    "short": "Cotton Navy Blue Banded Tee Shirt",
+    "price": "$141.50",
+    "image": "assets/catalog/8150-ss-shirt-dbl-band-collar.jpg",
+    "house": "BARCELINO",
+    "category": "T-Shirt",
+    "tags": [
+      "new",
+      "shirts"
+    ]
+  },
+  {
+    "slug": "104515-ss-shirt-multi-stripe",
+    "name": "Tencel Blue Multi Stripe Button Down",
+    "short": "Tencel Blue Multi Stripe Button Down",
+    "price": "$178.00 \u2013 $189.00",
+    "image": "assets/catalog/104515-ss-shirt-multi-stripe.jpg",
+    "house": "BARCELINO",
+    "category": "Shirt",
+    "tags": [
+      "new",
+      "shirts"
+    ]
+  },
+  {
+    "slug": "87219-5pkt-washed-tencel-twill",
+    "name": "Ash Grey Twill 5-Pocket Pants",
+    "short": "Ash Grey Twill 5-Pocket Pants",
+    "price": "$228.00 \u2013 $238.00",
+    "image": "assets/catalog/87219-5pkt-washed-tencel-twill.jpg",
+    "house": "BARCELINO",
+    "category": "Trousers",
+    "tags": [
+      "new",
+      "trousers"
+    ]
+  },
+  {
+    "slug": "10691-5pkt-mid-comfort",
+    "name": "Comfort Mid Blue Jean",
+    "short": "Comfort Mid Blue Jean",
+    "price": "$185.00 \u2013 $265.00",
+    "image": "assets/catalog/10691-5pkt-mid-comfort.jpg",
+    "house": "BARCELINO",
+    "category": "Jeans",
+    "tags": [
+      "new",
+      "trousers"
+    ]
+  },
+  {
+    "slug": "1041-bermuda-seersucker",
+    "name": "Beige Seersucker Bermuda Shorts",
+    "short": "Beige Seersucker Bermuda Shorts",
+    "price": "$158.00",
+    "image": "assets/catalog/1041-bermuda-seersucker.jpg",
+    "house": "BARCELINO",
+    "category": "Shorts",
+    "tags": [
+      "new",
+      "trousers"
+    ]
+  },
+  {
+    "slug": "29890-5pkt-fine-twill-tencel",
+    "name": "Dark Grey Stretch Twill 5-Pocket Pants",
+    "short": "Dark Grey Stretch Twill 5-Pocket Pants",
+    "price": "$228.00 \u2013 $238.00",
+    "image": "assets/catalog/29890-5pkt-fine-twill-tencel.jpg",
+    "house": "BARCELINO",
+    "category": "Trousers",
+    "tags": [
+      "new",
+      "trousers"
+    ]
+  },
+  {
+    "slug": "12781-5pkt-mid-cashmere",
+    "name": "Mid Vintage Blue Jean",
+    "short": "Mid Vintage Blue Jean",
+    "price": "$195.00 \u2013 $265.00",
+    "image": "assets/catalog/12781-5pkt-mid-cashmere.jpg",
+    "house": "BARCELINO",
+    "category": "Jeans",
+    "tags": [
+      "new",
+      "trousers"
+    ]
+  },
+  {
+    "slug": "8150-polo-ss-fancy",
+    "name": "Navy Blue Golf Polo",
+    "short": "Navy Blue Golf Polo",
+    "price": "$195.00 \u2013 $215.00",
+    "image": "assets/catalog/8150-polo-ss-fancy.jpg",
+    "house": "BARCELINO",
+    "category": "Polo",
+    "tags": [
+      "new",
+      "knitwear"
+    ]
   }
 ];
-const TABS = [["new","NEW ARRIVALS"],["jackets","JACKETS"],["blazers","BLAZERS"],["leather","LEATHER"]];
+const TABS = [["new","NEW ARRIVALS"],["jackets","JACKETS"],["blazers","BLAZERS"],
+              ["knitwear","KNITWEAR"],["shirts","SHIRTS"],["trousers","TROUSERS"],["leather","LEATHER"]];
 
 /* Fitting-room language. Never "processing", "rendering" or "generating" —
    the technology is supposed to disappear. */
@@ -659,6 +867,7 @@ const $ = id => document.getElementById(id);
 const looks = Object.create(null);   // slug -> data URL  (the cache)
 const inflight = Object.create(null); // slug -> Promise   (dedupe)
 let activeTab = "new", selected = null, personDataUrl = null;
+const liked = new Set();
 let phraseTimer = null;
 
 /* ---------------- open / close ---------------- */
@@ -686,15 +895,26 @@ function render(){
     `<button class="rail-tab ${k===activeTab?'on':''}" data-tab="${k}">${l}</button>`).join('');
   const list = activeTab==='new' ? CATALOG : CATALOG.filter(p=>p.tags.includes(activeTab));
   $('rail').innerHTML = list.map(p=>`
-    <button class="piece ${selected===p.slug?'on':''}" data-slug="${p.slug}">
+    <button class="piece ${selected===p.slug?'on':''}${liked.has(p.slug)?' liked':''}" data-slug="${p.slug}">
       <span class="shot"><img src="${p.image}" alt="${p.name}"></span>
+      <svg class="heart" viewBox="0 0 24 24" data-like="${p.slug}"><path d="M20.8 8.6a5 5 0 00-8.8-3 5 5 0 00-8.8 3c0 5 8.8 10.4 8.8 10.4s8.8-5.4 8.8-10.4z"/></svg>
+      <span class="house">${p.house}</span>
       <span class="nm">${p.short}</span>
       <span class="pr">${p.price}</span>
     </button>`).join('');
 }
 document.addEventListener('click',e=>{
+  const h=e.target.closest('[data-like]');
+  if(h){ e.stopPropagation();
+    const sl=h.getAttribute('data-like');
+    liked.has(sl)?liked.delete(sl):liked.add(sl); render(); return; }
   const t=e.target.closest('.rail-tab'); if(t){activeTab=t.dataset.tab;render();return;}
   const pc=e.target.closest('.piece'); if(pc) select(pc.dataset.slug);
+});
+/* Full-bleed view of the current look. */
+$('expand').addEventListener('click',()=>{
+  const src=$('look').getAttribute('src');
+  if(src) window.open(src,'_blank');
 });
 $('prev').onclick=()=>$('rail').scrollBy({left:-300,behavior:'smooth'});
 $('next').onclick=()=>$('rail').scrollBy({left: 300,behavior:'smooth'});
@@ -706,7 +926,7 @@ $('file').onchange=e=>{
   const rd=new FileReader();
   rd.onload=()=>{
     personDataUrl=rd.result; $('me').src=rd.result;
-    $('r1').textContent='Photo uploaded'; $('r1e').textContent='COMPLETE';
+    $('r1').textContent='Photo uploaded'; $('r1s').textContent='Complete';
     /* A new face invalidates every look we have cached. */
     for(const k in looks) delete looks[k];
     if(selected) show(selected,true);
@@ -746,9 +966,13 @@ function fetchLook(p){
 }
 
 function paint(url){
-  const img=$('look');
-  img.classList.remove('in'); img.hidden=false; $('fail').hidden=true;
-  const swap=()=>{img.src=url; requestAnimationFrame(()=>img.classList.add('in'));};
+  const img=$('look'), bg=$('lookbg');
+  img.classList.remove('in'); bg.classList.remove('in');
+  img.hidden=false; bg.hidden=false; $('fail').hidden=true;
+  const swap=()=>{
+    img.src=url; bg.src=url;
+    requestAnimationFrame(()=>{img.classList.add('in');bg.classList.add('in');});
+  };
   if(img.src && img.src!==url) setTimeout(swap,140); else swap();
 }
 
