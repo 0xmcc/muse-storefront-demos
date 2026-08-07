@@ -27,7 +27,11 @@ __BASE_CSS__
 
 /* hero ---------------------------------------------------- */
 .lhero{position:relative;background:var(--cream)}
-.lhero img{width:100%;height:clamp(340px,40vw,540px);object-fit:cover;display:block}
+/* Hero art is 2:1; the slot is wider than that at most widths, so cover crops
+   vertically. Anchor high — the subject's head sits near the top of the frame
+   and a centred crop decapitates him. */
+.lhero img{width:100%;height:clamp(340px,42vw,620px);object-fit:cover;
+  object-position:center 12%;display:block}
 .lherobar{position:relative;max-width:1250px;margin:0 auto;padding:0 24px;height:0}
 .lbadge{position:absolute;left:24px;bottom:-46px;width:112px;height:112px;background:#fff;
   border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;
