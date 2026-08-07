@@ -14,7 +14,9 @@ Pre-skill. One site built by hand to learn the shape before freezing it into a s
 
 | | |
 |---|---|
-| Reference build | `sites/barcelino/` — `index.html` (PDP, v1) + `tryon.html` (studio, v2) |
+| Reference build | `sites/barcelino/` |
+| — product page | `index.html` — their real PDP, studio opens from the PDP button |
+| — try-on destination | `virtual-try-on.html` — the landing journey, built from `landing.template.html` |
 | Brand style profile | `sites/barcelino/brand.json` (D14) |
 | Ledger | `demos.csv` — one row per run, aborts included (D9) |
 | Raw scrape + screenshots | `.scrape/barcelino/` |
@@ -43,8 +45,18 @@ python3 scripts/serve.py --brand barcelino     # http://localhost:8765
 the right, a category-tabbed carousel of the retailer's real catalog underneath. Click any
 garment and it generates against the live Muse backend in ~16s.
 
-QA hooks: `?gen=1` freezes the generating overlay without spending a call;
-`?auto=<slug>` fires a real generation on load for headless capture.
+`/virtual-try-on.html` is the destination page: hero with before/after plates, intro,
+step walkthrough built from real screenshots of the studio itself, trust cards, editorial
+prose, FAQ, AI-services band, footer. Every CTA opens the same studio.
+
+Rebuild it after touching either the template or the studio — the studio's CSS, markup and
+controller are lifted out of `index.html` at build time so the two cannot drift:
+```bash
+python3 scripts/build_landing.py barcelino
+```
+
+QA hooks: `?studio=1` opens the studio; `?fitting=1` freezes the fitting veil without
+spending a call; `?auto=<slug>` fires a real generation on load for headless capture.
 
 ## How a build works
 1. **Scrape structure** — FireCrawl `/v2/scrape` with `rawHtml` + full-page `screenshot`.

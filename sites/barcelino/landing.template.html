@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Virtual Try-On | Barcelino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+__BASE_CSS__
+
+/* ============================================================
+   VIRTUAL TRY-ON LANDING
+   Follows the approved reference's journey and pacing: hero with
+   primary CTA, title + intro, step walkthrough rail, trust cards,
+   editorial prose, "maybe you're wondering", dark AI-services band,
+   breadcrumb, footer. Everything restyled to Barcelino's palette,
+   type and whitespace.
+   ============================================================ */
+.lsec{max-width:1250px;margin:0 auto;padding:0 24px}
+.lh{font-family:var(--font-body);font-size:19px;font-weight:400;letter-spacing:.15em;
+  text-transform:uppercase;margin:0 0 26px}
+.lh.ctr{text-align:center;letter-spacing:.17em}
+.lh.rule{border-bottom:1px solid var(--border);padding-bottom:16px;max-width:900px}
+
+/* hero ---------------------------------------------------- */
+.lhero{position:relative;background:var(--cream)}
+.lhero img{width:100%;height:clamp(340px,40vw,540px);object-fit:cover;display:block}
+.lherobar{position:relative;max-width:1250px;margin:0 auto;padding:0 24px;height:0}
+.lbadge{position:absolute;left:24px;bottom:-46px;width:112px;height:112px;background:#fff;
+  border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;gap:2px;box-shadow:0 8px 26px rgba(0,0,0,.09)}
+.lbadge span{font-family:var(--font-display);font-size:15px;line-height:1.15;color:#1c1a18}
+.lbadge i{display:block;width:22px;height:1px;background:var(--gold);margin:7px auto 0}
+.lctawrap{position:absolute;right:24px;bottom:26px}
+.lcta{height:52px;padding:0 34px;border:0;background:var(--gold);color:#1c1a18;
+  font-size:11.5px;font-weight:700;letter-spacing:.16em;display:inline-flex;align-items:center;
+  gap:11px;transition:.22s;cursor:pointer}
+.lcta:hover{background:var(--gold-deep);color:#fff}
+.lcta svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6}
+.lcta.dark{background:#1c1a18;color:#fff}
+.lcta.dark:hover{background:#332f2b}
+
+.lintro{padding:82px 0 0}
+.lintro h1{font-family:var(--font-body);font-size:26px;font-weight:400;letter-spacing:.15em;
+  text-transform:uppercase;margin:0 0 22px}
+.lintro p{max-width:760px;font-size:14.5px;line-height:1.85;color:#4a4640;margin:0}
+
+/* steps --------------------------------------------------- */
+.lsteps{padding:74px 0 0}
+.lsteprail{display:flex;gap:18px;overflow-x:auto;padding-bottom:20px;scrollbar-width:none}
+.lsteprail::-webkit-scrollbar{display:none}
+.lstep{flex:0 0 250px}
+/* crops vary in height; normalise with a fixed well and a top-anchored cover
+   so the row reads as one set of product screenshots, not five odd sizes */
+.lstep .shot{background:var(--cream);border:1px solid var(--border);padding:18px 18px 0;
+  height:306px;overflow:hidden}
+/* full width, top-anchored, bottom clipped by the well. `cover` here sliced the
+   UI labels off the sides, which made real screenshots look broken. */
+.lstep .shot img{width:100%;height:auto;display:block;box-shadow:0 6px 22px rgba(0,0,0,.11)}
+.lstep b{display:block;font-size:12.5px;font-weight:700;margin:16px 0 6px}
+.lstep p{margin:0;font-size:12.5px;color:#6e6a65;line-height:1.6}
+.lprogress{height:2px;background:#eceae7;margin-top:6px}
+.lprogress i{display:block;height:2px;width:42%;background:#1c1a18}
+
+/* trust cards --------------------------------------------- */
+.ltrust{padding:82px 0 0}
+.ltgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.tcard{background:var(--cream);padding:38px 30px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;min-height:186px;
+  font-size:14.5px;color:#4a4640;line-height:1.6}
+.tcard strong{display:block;font-family:var(--font-display);font-size:27px;font-weight:400;
+  color:var(--gold-deep);line-height:1.25;margin:5px 0}
+
+/* prose + faq --------------------------------------------- */
+.lprose{padding:84px 0 0}
+.lprose p{max-width:900px;font-size:13.5px;line-height:1.95;color:#4a4640;margin:0 0 22px}
+.lprose b{color:#1c1a18}
+.lfaq{padding:64px 0 90px}
+.lfaq dl{margin:0;max-width:900px}
+.lfaq dt{font-size:13.5px;font-weight:700;color:#1c1a18;margin:22px 0 7px}
+.lfaq dd{margin:0;font-size:13.5px;line-height:1.9;color:#4a4640}
+
+/* dark AI-services band ----------------------------------- */
+.ldark{background:#141210;color:#fff;padding:74px 0}
+.ldwrap{max-width:1250px;margin:0 auto;padding:0 24px;display:grid;
+  grid-template-columns:280px minmax(0,1fr);gap:44px;align-items:center}
+.ldleft .kick{font-size:10.5px;letter-spacing:.2em;color:var(--gold);margin-bottom:16px}
+.ldleft h2{font-family:var(--font-display);font-size:31px;font-weight:400;line-height:1.25;margin:0 0 22px}
+.ldleft a{font-size:10.5px;letter-spacing:.16em;border-bottom:1px solid rgba(255,255,255,.45);padding-bottom:3px}
+.lexprail{display:flex;gap:16px;overflow-x:auto;padding-bottom:14px;scrollbar-width:none}
+.lexprail::-webkit-scrollbar{display:none}
+.lexp{flex:0 0 176px;background:#1e1b19;display:flex;flex-direction:column}
+.lexp img{width:100%;height:196px;object-fit:cover}
+.lexp .body{padding:16px 15px 18px;display:flex;flex-direction:column;flex:1}
+.lexp .nm{font-size:11px;letter-spacing:.13em;color:var(--gold);margin-bottom:9px}
+.lexp p{margin:0 0 16px;font-size:11.5px;line-height:1.6;color:#b8b3ac;flex:1}
+.lexp span{font-size:10px;letter-spacing:.14em;border-bottom:1px solid rgba(255,255,255,.35);
+  padding-bottom:3px;align-self:flex-start}
+
+/* breadcrumb + statement ---------------------------------- */
+.lcrumb{border-bottom:1px solid var(--border);font-size:11px;letter-spacing:.13em;
+  color:#8d8983;padding:16px 0}
+.lstatement{background:var(--cream);text-align:center;padding:74px 24px}
+.lstatement h2{font-family:var(--font-display);font-size:33px;font-weight:400;
+  letter-spacing:.04em;margin:0 0 18px}
+.lstatement p{margin:0 0 26px;font-size:13.5px;color:#6e6a65}
+
+@media(max-width:900px){
+  .ltgrid{grid-template-columns:1fr}
+  .ldwrap{grid-template-columns:1fr;gap:30px}
+  .lintro{padding-top:96px}
+  .lctawrap{position:static;padding:22px 24px 0}
+  .lbadge{width:88px;height:88px;bottom:-34px}
+  .lintro h1{font-size:20px}
+  nav.main,.icons{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="announce">Free shipping on orders over $300</div>
+
+<header>
+  <div class="wrap hdr">
+    <button class="burger" aria-label="Menu">
+      <svg width="22" height="22" viewBox="0 0 24 24" stroke="#000" stroke-width="1.6" fill="none"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <a class="logo" href="index.html"><img src="assets/logo.png" alt="Barcelino"></a>
+    <nav class="main">
+      <a href="index.html">HOME</a><a href="#">MEN'S</a><a href="#">WOMEN'S</a>
+      <a href="virtual-try-on.html" style="border-bottom:2px solid var(--ink);padding-bottom:3px">VIRTUAL TRY-ON</a>
+      <a href="#">STORES</a><a href="#">SALE</a>
+    </nav>
+    <div class="icons">
+      <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" fill="none"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" fill="none"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" fill="none"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== HERO ===================== -->
+<section class="lhero">
+  <img src="assets/landing/hero.jpg" alt="Your photo beside the same person wearing a Barcelino blazer">
+  <div class="lherobar">
+    <div class="lbadge"><span>Virtual<br>Try-On</span><i></i></div>
+    <div class="lctawrap">
+      <button class="lcta" data-open-studio>
+        <svg viewBox="0 0 24 24"><path d="M3 8.5A1.5 1.5 0 014.5 7h2.2l1.1-2h8.4l1.1 2h2.2A1.5 1.5 0 0121 8.5v9A1.5 1.5 0 0119.5 19h-15A1.5 1.5 0 013 17.5z"/><circle cx="12" cy="12.6" r="3.4"/></svg>
+        START VIRTUAL TRY-ON
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== INTRO ===================== -->
+<section class="lsec lintro">
+  <h1>Virtual Try-On</h1>
+  <p>Virtual Try-On is a private fitting room that travels with you. Upload a single photograph and
+  see yourself wearing any piece from Barcelino's curated collection — the exact jacket, in the exact
+  cloth, rendered with the drape and proportion of a garment actually on your shoulders. Browse the
+  collection, compare pieces side by side, save the looks you return to, and order the ones you want.
+  Every look is created for you and for no one else.</p>
+</section>
+
+<!-- ===================== STEPS ===================== -->
+<section class="lsec lsteps">
+  <h2 class="lh ctr">How Virtual Try-On Works</h2>
+  <div class="lsteprail">
+    <div class="lstep"><div class="shot"><img src="assets/landing/step1.jpg" alt="Upload your photo"></div>
+      <b>Step 1</b><p>Upload a photograph, or take one where you stand.</p></div>
+    <div class="lstep"><div class="shot"><img src="assets/landing/step2.jpg" alt="Choose a category"></div>
+      <b>Step 2</b><p>Choose a category — blazers, knitwear, shirting, trousers, leather.</p></div>
+    <div class="lstep"><div class="shot"><img src="assets/landing/step3.jpg" alt="Select a garment"></div>
+      <b>Step 3</b><p>Select a garment from the collection now in the boutique.</p></div>
+    <div class="lstep"><div class="shot"><img src="assets/landing/step4.jpg" alt="See yourself wearing it"></div>
+      <b>Step 4</b><p>See yourself wearing it, photographed as though in store.</p></div>
+    <div class="lstep"><div class="shot"><img src="assets/landing/step5.jpg" alt="Save or purchase your look"></div>
+      <b>Step 5</b><p>Save the look, share it, or order it directly.</p></div>
+    <div class="lstep"><div class="shot" style="align-items:center">
+        <div style="text-align:center;padding:0 14px">
+          <div style="font-family:var(--font-display);font-size:21px;margin-bottom:12px">Try it now</div>
+          <button class="lcta dark" style="height:44px;padding:0 22px;font-size:10.5px" data-open-studio>BEGIN</button>
+        </div></div>
+      <b>Step 6</b><p>Return whenever the collection changes. Your fitting is always ready.</p></div>
+  </div>
+  <div class="lprogress"><i></i></div>
+</section>
+
+<!-- ===================== TRUST ===================== -->
+<section class="lsec ltrust">
+  <h2 class="lh rule">Precise, Private, and Built for Tailoring</h2>
+  <div class="ltgrid">
+    <div class="tcard">Your face, your hair, your complexion —<strong>preserved exactly</strong>in every look</div>
+    <div class="tcard">Cloth that falls with<strong>real weight and drape</strong>across the shoulder and lapel</div>
+    <div class="tcard"><strong>True proportion</strong>so a 48R reads as a 48R, not an approximation</div>
+    <div class="tcard">Every look rendered as<strong>editorial photography</strong>not as a composite or a cut-out</div>
+    <div class="tcard">Your photograph is<strong>never stored</strong>and used only for your fitting</div>
+  </div>
+</section>
+
+<!-- ===================== PROSE ===================== -->
+<section class="lsec lprose">
+  <p>There is a moment every customer knows. A jacket looks extraordinary on the rail, and quite
+  different in the mirror. The shoulder sits a fraction wide. The cloth reads warmer under the
+  boutique's light than it will on a Tuesday morning. For a hundred years the only remedy was to come
+  in, take off your coat, and try it on. <b>Virtual Try-On is that fitting room, brought to you.</b></p>
+
+  <p>The service works from a single photograph. Barcelino's atelier photographs every garment in the
+  collection — the weave, the roll of the lapel, the exact hand of a silk-linen — and Virtual Try-On
+  places that specific piece on you, keeping your face, your hair and your build unchanged. What comes
+  back is not a cut-out or an overlay. It is a photograph of you, in that jacket, lit as our campaigns
+  are lit. <b>You see the garment as it will actually look</b>, before anything is ordered.</p>
+
+  <p>Your photograph belongs to you. It is used to prepare your fitting and for nothing else — never
+  stored, never sold, never shown to anyone. <b>The whole point of a fitting room is that it is
+  private</b>, and this one is no different.</p>
+</section>
+
+<!-- ===================== FAQ ===================== -->
+<section class="lsec lfaq">
+  <h2 class="lh rule">Maybe You're Wondering…</h2>
+  <dl>
+    <dt>How accurate is Virtual Try-On?</dt>
+    <dd>It is accurate about the things you can see: colour, cloth, cut, lapel width, length and how a
+    piece sits on your frame. It is a very good indication of how a garment will look on you, and it is
+    not a substitute for a tailor's tape.</dd>
+
+    <dt>Will the garment fit exactly the same in person?</dt>
+    <dd>Fit depends on your measurements and on the alterations our tailors make. Use Virtual Try-On to
+    decide what suits you, then let the fitting room and our tailors settle the last inch.</dd>
+
+    <dt>Can I try more than one jacket?</dt>
+    <dd>As many as you like. Move through the collection and each piece is fitted to the same
+    photograph, so you are comparing garments rather than lighting or pose.</dd>
+
+    <dt>Can I compare different colours?</dt>
+    <dd>Yes. Colourways sit beside one another in the collection rail, and a look you have already seen
+    reappears immediately, so you can move back and forth between two of them.</dd>
+
+    <dt>What happens to my photograph?</dt>
+    <dd>It is used to prepare your fitting and then discarded. It is never stored, never used for
+    anything else, and never shown to anyone.</dd>
+
+    <dt>Can I save the looks I like?</dt>
+    <dd>Save any look to return to it, share it with whoever you take shopping advice from, or order the
+    piece directly from the boutique.</dd>
+  </dl>
+</section>
+
+<!-- ===================== AI SERVICES ===================== -->
+<section class="ldark">
+  <div class="ldwrap">
+    <div class="ldleft">
+      <div class="kick">BARCELINO SERVICES</div>
+      <h2>The boutique, wherever you are.</h2>
+      <a href="#">SEE ALL SERVICES</a>
+    </div>
+    <div class="lexprail">
+      <div class="lexp"><img src="assets/landing/exp-tryon.jpg" alt="">
+        <div class="body"><div class="nm">VIRTUAL TRY-ON</div>
+          <p>See any piece in the collection on yourself before you order.</p>
+          <span data-open-studio style="cursor:pointer">BEGIN A FITTING</span></div></div>
+      <div class="lexp"><img src="assets/landing/exp-outfit.jpg" alt="">
+        <div class="body"><div class="nm">OUTFIT SUGGESTIONS</div>
+          <p>Trousers, shirting and accessories chosen to finish a jacket you like.</p>
+          <span>EXPLORE</span></div></div>
+      <div class="lexp"><img src="assets/landing/exp-wardrobe.jpg" alt="">
+        <div class="body"><div class="nm">CAPSULE WARDROBE</div>
+          <p>Build a small wardrobe that works together across a season.</p>
+          <span>EXPLORE</span></div></div>
+      <div class="lexp"><img src="assets/landing/exp-profile.jpg" alt="">
+        <div class="body"><div class="nm">STYLE PROFILE</div>
+          <p>Your sizes, your cuts, your colours — remembered between visits.</p>
+          <span>EXPLORE</span></div></div>
+      <div class="lexp"><img src="assets/landing/exp-occasion.jpg" alt="">
+        <div class="body"><div class="nm">OCCASION STYLING</div>
+          <p>A wedding, a board meeting, a long weekend. Dressed accordingly.</p>
+          <span>EXPLORE</span></div></div>
+      <div class="lexp"><img src="assets/landing/exp-arrivals.jpg" alt="">
+        <div class="body"><div class="nm">NEW ARRIVALS FOR YOU</div>
+          <p>Only the pieces from each delivery that suit your build and taste.</p>
+          <span>EXPLORE</span></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="lsec lcrumb">HOME &nbsp;/&nbsp; VIRTUAL TRY-ON</div>
+
+<section class="lstatement">
+  <h2>Dressed well, without leaving home.</h2>
+  <p>Then come in, and let our tailors do the rest.</p>
+  <button class="lcta dark" data-open-studio>START VIRTUAL TRY-ON</button>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div><h3>CUSTOMER CARE</h3><a href="#">Store Locations &amp; Hours</a><a href="#">Online Returns &amp; Exchanges</a><a href="#">Contact Us</a></div>
+      <div><h3>ABOUT BARCELINO</h3><a href="#">About Us</a><a href="#">Privacy &amp; Terms</a><a href="#">Accessibility</a></div>
+      <div><h3>SUBSCRIBE</h3>
+        <form class="sub" onsubmit="return false"><input type="email" placeholder="Enter your email to get the latest promotions and news"><button>Subscribe</button></form>
+        <p class="follow">Follow Us To Get The Latest Updates!
+          <a class="soc" href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="#fff"><path d="M13.5 21v-8h2.7l.4-3.1h-3.1V7.9c0-.9.25-1.5 1.55-1.5H16.7V3.6c-.29-.04-1.28-.12-2.43-.12-2.4 0-4.05 1.47-4.05 4.17V9.9H7.5V13h2.72v8h3.28z"/></svg></a>
+          <a class="soc" href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><rect x="4" y="4" width="16" height="16" rx="4.6"/><circle cx="12" cy="12" r="3.6"/><circle cx="16.9" cy="7.1" r="1.05" fill="#fff" stroke="none"/></svg></a>
+        </p>
+      </div>
+    </div>
+    <div class="copy">
+      <span>Copyright © 2026 Barcelino Continental Corp. All rights reserved.</span>
+      <span class="pay">Payment Methods:
+        <svg viewBox="0 0 34 22" class="cc"><rect width="34" height="22" rx="3" fill="#6772E5"/><text x="17" y="15" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff" font-family="Lato,sans-serif">stripe</text></svg>
+        <svg viewBox="0 0 34 22" class="cc"><rect width="34" height="22" rx="3" fill="#1A1F71"/><text x="17" y="15.5" text-anchor="middle" font-size="10" font-weight="700" font-style="italic" fill="#fff" font-family="Lato,sans-serif">VISA</text></svg>
+        <svg viewBox="0 0 34 22" class="cc"><rect width="34" height="22" rx="3" fill="#fff" stroke="#e0e0e0"/><circle cx="14" cy="11" r="6.4" fill="#EB001B"/><circle cx="20" cy="11" r="6.4" fill="#F79E1B" fill-opacity=".85"/></svg>
+        <svg viewBox="0 0 34 22" class="cc"><rect width="34" height="22" rx="3" fill="#006FCF"/><text x="17" y="14.5" text-anchor="middle" font-size="7" font-weight="700" fill="#fff" font-family="Lato,sans-serif">AMEX</text></svg>
+      </span>
+    </div>
+  </div>
+</footer>
+
+__STUDIO_MARKUP__
+
+<div class="demobar"><span class="dot"></span>
+  <span>Concept demo by <b>Muse</b> · not affiliated with or endorsed by Barcelino · products &amp; imagery belong to their owner</span></div>
+
+<script>
+__STUDIO_JS__
+</script>
+</body>
+</html>
