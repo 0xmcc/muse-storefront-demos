@@ -233,7 +233,7 @@ body{padding-bottom:34px}
 .studio-panes>*{min-width:0}
 .pcard{background:#fff;border:1px solid #e9e6e2;border-radius:8px;padding:16px;
   display:flex;flex-direction:column}
-.slabel{font-size:10.5px;letter-spacing:.13em;color:#4a4642;text-align:center;margin-bottom:13px}
+.slabel{font-size:10.5px;letter-spacing:.13em;color:#4a4642;text-align:center;margin-bottom:13px;position:relative}
 
 /* left ---------------------------------------------------- */
 .photowrap{position:relative}
@@ -282,17 +282,21 @@ body{padding-bottom:34px}
 .stage .fail{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   text-align:center;padding:0 40px;font-size:12.5px;color:#a8412f;line-height:1.7}
 
-.fitting{position:absolute;inset:0;background:rgba(240,238,235,.96);
-  display:flex;align-items:center;justify-content:center;
-  opacity:0;pointer-events:none;transition:opacity .45s ease;overflow:hidden}
-.fitting.on{opacity:1;pointer-events:auto}
-.fitting .phrase{font-family:var(--font-display);font-size:18px;font-style:italic;
-  color:#8c8479;opacity:0;transition:opacity .6s ease;z-index:2}
-.fitting .phrase.in{opacity:1}
-.fitting::after{content:"";position:absolute;inset:0;
-  background:linear-gradient(105deg,transparent 32%,rgba(255,255,255,.72) 50%,transparent 68%);
-  transform:translateX(-100%);animation:sheen 2.6s cubic-bezier(.4,0,.2,1) infinite}
-@keyframes sheen{to{transform:translateX(100%)}}
+/* Loading treatment — deliberately minimal. The only change to the frame is
+   that the outgoing look softens and recedes; the new one crossfades in over
+   it. No status text on the photography, no progress chrome. The wording lives
+   in the panel label, off the image.
+
+   (The previous version stacked a cream veil UNDER .look, which has z-index:1,
+   while its text sat above it — so the phrase appeared stamped on an undimmed
+   photograph. That is what made it read as broken rather than loading.) */
+.stage.loading .look{filter:blur(13px) saturate(.86);opacity:.5;transform:scale(1.025)}
+.stage.loading .look-bg{opacity:.42;filter:blur(52px) saturate(.6) brightness(1.16)}
+
+.slabel .state{color:#a08a5e;opacity:0;transition:opacity .4s ease}
+.slabel .rest{transition:opacity .4s ease}
+.slabel.busy .rest{opacity:0}
+.slabel.busy .state{opacity:1}
 
 .rail-tabs{display:flex;justify-content:space-between;gap:10px;margin-top:16px;padding-right:2px;
   border-bottom:1px solid #eceae7;overflow-x:auto;scrollbar-width:none}
@@ -954,12 +958,11 @@ body{padding-bottom:34px}
 
     <!-- THE LOOK -->
     <div class="pcard">
-      <div class="slabel">THE LOOK</div>
-      <div class="stage">
+      <div class="slabel" id="lookLabel"><span class="rest">THE LOOK</span><span class="state" style="position:absolute;left:0;right:0">PREPARING YOUR FITTING</span></div>
+      <div class="stage" id="stage">
         <img class="look-bg" id="lookbg" alt="" aria-hidden="true" hidden>
         <img class="look" id="look" alt="" hidden>
         <div class="fail" id="fail" hidden></div>
-        <div class="fitting" id="fitting"><div class="phrase" id="phrase">Preparing your fitting</div></div>
         <button class="expand" id="expand" aria-label="View larger">
           <svg viewBox="0 0 24 24"><path d="M9 4H4v5M15 4h5v5M15 20h5v-5M9 20H4v-5"/></svg>
         </button>
@@ -1262,15 +1265,14 @@ const TABS = [["new","NEW ARRIVALS"],["jackets","JACKETS"],["blazers","BLAZERS"]
               ["knitwear","KNITWEAR"],["shirts","SHIRTS"],["trousers","TROUSERS"],["leather","LEATHER"]];
 
 /* Fitting-room language. Never "processing", "rendering" or "generating" —
-   the technology is supposed to disappear. */
-const PHRASES = ["Preparing your fitting","Styling your look","Finishing the details"];
+   the technology is supposed to disappear. Shown in the panel label, never
+   over the photograph. */
 
 const $ = id => document.getElementById(id);
 const looks = Object.create(null);   // slug -> data URL  (the cache)
 const inflight = Object.create(null); // slug -> Promise   (dedupe)
 let activeTab = "new", selected = null, personDataUrl = null;
 const liked = new Set();
-let phraseTimer = null;
 
 /* ---------------- open / close ---------------- */
 function openStudio(){
@@ -1461,20 +1463,12 @@ $('file').onchange=e=>{
   rd.readAsDataURL(f);
 };
 
-/* ---------------- fitting veil ---------------- */
+/* ---------------- loading treatment ----------------
+   Toggles a class on the stage and swaps the panel label. Deliberately no
+   text over the image and no percentage — the frame stays a campaign shot. */
 function veil(on){
-  const f=$('fitting'), ph=$('phrase');
-  if(on){
-    f.classList.add('on'); let i=0;
-    ph.textContent=PHRASES[0]; ph.classList.add('in');
-    clearInterval(phraseTimer);
-    phraseTimer=setInterval(()=>{
-      ph.classList.remove('in');
-      setTimeout(()=>{i=(i+1)%PHRASES.length;ph.textContent=PHRASES[i];ph.classList.add('in');},600);
-    },3400);
-  }else{
-    clearInterval(phraseTimer); f.classList.remove('on'); ph.classList.remove('in');
-  }
+  $('stage').classList.toggle('loading', !!on);
+  $('lookLabel').classList.toggle('busy', !!on);
 }
 
 /* ---------------- generation ---------------- */
