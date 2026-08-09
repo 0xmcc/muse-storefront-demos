@@ -825,7 +825,7 @@ body{padding-bottom:34px}
    Virtual Try-On studio controller.
 
    D12: every look is generated LIVE against the Muse backend via the
-   same-origin /api/tryon proxy (D13 — no credentials in this page).
+   same-origin api/tryon proxy (D13 — no credentials in this page).
 
    Perceived speed is pursued WITHOUT speculative generation:
      1. every look is cached the moment it returns, so revisiting a
@@ -1302,7 +1302,7 @@ function veil(on){
 function fetchLook(p){
   if(looks[p.slug]) return Promise.resolve(looks[p.slug]);
   if(inflight[p.slug]) return inflight[p.slug];
-  inflight[p.slug]=fetch('/api/tryon',{method:'POST',headers:{'content-type':'application/json'},
+  inflight[p.slug]=fetch('api/tryon',{method:'POST',headers:{'content-type':'application/json'},
       body:JSON.stringify({garment:p.image,name:p.name,category:p.category,personDataUrl})})
     .then(async r=>{
       const j=await r.json();

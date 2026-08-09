@@ -1,22 +1,29 @@
 #!/usr/bin/env python3
 """
-Dev server + try-on proxy for a demo site.
+Server + try-on proxy for the demo sites. Same process locally and in production.
 
 Why a proxy exists at all (D12): the demo generates try-on LIVE. The Muse route
 needs `x-app-key` and a Pro-override header. Those must never reach the browser —
 a demo page mailed to 40 boutiques with those keys in source hands anyone a
-permanent Muse Pro bypass. So the page calls /api/tryon here, and this process
+permanent Muse Pro bypass. So the page calls `api/tryon` here, and this process
 holds the credentials.
 
-    python3 scripts/serve.py --brand barcelino [--port 8765]
+One process serves EVERY brand (D23). A boutique is a folder under `sites/`, not
+a deployment — otherwise forty prospects means forty servers to run and forget.
+
+    python3 scripts/serve.py [--port 8765] [--host 127.0.0.1]
+    → http://localhost:8765/barcelino/
 
 Endpoints:
-    GET  /*            static files from sites/<brand>/
-    POST /api/tryon    {personDataUrl?, garment: "assets/catalog/x.jpg", name, category?}
-                    -> {"imageUrl": "data:image/png;base64,..."}
+    GET  /<brand>/*            static files from sites/<brand>/
+    POST /<brand>/api/tryon    {personDataUrl?, garment: "assets/catalog/x.jpg", name, category?}
+                            -> {"imageUrl": "data:image/png;base64,..."}
 
-Deploying: this maps 1:1 onto a Vercel/Cloudflare function. Keep the same request
-shape so the front end does not change when it moves.
+`/` is deliberately 404 and directory listings are off: a prospect must never be
+able to browse the other boutiques we are pitching.
+
+The request body and response shape are unchanged from the single-brand version,
+so this still maps 1:1 onto a serverless function if hosting ever moves.
 """
 import argparse
 import json
@@ -28,9 +35,10 @@ from collections import defaultdict, deque
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from generate_tryon import generate_tryon, load_env, to_data_url  # noqa: E402
+from generate_tryon import generate_tryon, load_env  # noqa: E402
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SITES = os.path.abspath(os.path.join(REPO, "sites"))
 
 # Luxury campaign quality is a prompt problem, not a model problem. This is the
 # house style every generated look is asked for, so results read as editorial
@@ -48,10 +56,20 @@ EDITORIAL_NOTES = (
 )
 
 # Public demo, live generation, real money per call. Cap it per IP (#44).
+# D15a: this cap is Marko's to change, not a build's.
 RATE_MAX = 12
 RATE_WINDOW_S = 600
 _hits = defaultdict(deque)
 _lock = threading.Lock()
+
+# Behind a reverse proxy every request arrives from loopback, which would make the
+# per-visitor cap a single global one. Trust x-forwarded-for ONLY from loopback,
+# so a direct caller can never spoof its way around the cap.
+LOOPBACK = {"127.0.0.1", "::1"}
+
+# Returned by translate_path for anything off-limits. It cannot exist, so the
+# stdlib handler answers 404 without us having to special-case send_head.
+NO_SUCH_PATH = os.path.join(SITES, "__no_such_site__")
 
 
 def rate_ok(ip):
@@ -66,17 +84,62 @@ def rate_ok(ip):
         return True
 
 
+def split_path(path):
+    """"/barcelino/assets/x.jpg" -> ("barcelino", "assets/x.jpg")."""
+    clean = path.split("?", 1)[0].split("#", 1)[0]
+    parts = [p for p in clean.split("/") if p]
+    if not parts:
+        return None, ""
+    return parts[0], "/".join(parts[1:])
+
+
+def site_root(brand):
+    """Absolute path of sites/<brand>, or None if it isn't a real brand folder."""
+    if not brand:
+        return None
+    root = os.path.abspath(os.path.join(SITES, brand))
+    if os.path.dirname(root) != SITES or not os.path.isdir(root):
+        return None
+    return root
+
+
 class Handler(SimpleHTTPRequestHandler):
     env = {}
-    root = "."
+
+    def client_ip(self):
+        peer = self.client_address[0]
+        if peer in LOOPBACK:
+            first = self.headers.get("x-forwarded-for", "").split(",")[0].strip()
+            if first:
+                return first
+        return peer
 
     def translate_path(self, path):
-        rel = path.split("?", 1)[0].split("#", 1)[0].lstrip("/")
-        full = os.path.normpath(os.path.join(self.root, rel or "index.html"))
-        # Never serve outside the site dir, and never serve the brand's raw config
-        if not full.startswith(os.path.abspath(self.root)):
-            return os.path.join(self.root, "index.html")
+        brand, rest = split_path(path)
+        root = site_root(brand)
+        if root is None:
+            return NO_SUCH_PATH
+        full = os.path.normpath(os.path.join(root, rest or "index.html"))
+        if full != root and not full.startswith(root + os.sep):
+            return NO_SUCH_PATH
         return full
+
+    def list_directory(self, path):
+        # Never expose an index of assets, and never of sites/.
+        self.send_error(404)
+        return None
+
+    def do_GET(self):
+        brand, rest = split_path(self.path)
+        # "/barcelino" must become "/barcelino/", or every relative asset URL on
+        # the page resolves one level too high and the site loads bare.
+        if brand and not rest and site_root(brand):
+            if not self.path.split("?", 1)[0].endswith("/"):
+                self.send_response(301)
+                self.send_header("location", "/%s/" % brand)
+                self.end_headers()
+                return
+        super().do_GET()
 
     def _json(self, code, obj):
         body = json.dumps(obj).encode()
@@ -87,10 +150,12 @@ class Handler(SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_POST(self):
-        if self.path.split("?")[0] != "/api/tryon":
+        brand, rest = split_path(self.path)
+        root = site_root(brand)
+        if root is None or rest != "api/tryon":
             return self._json(404, {"error": "not found"})
 
-        ip = self.client_address[0]
+        ip = self.client_ip()
         if not rate_ok(ip):
             return self._json(429, {"error": "Too many try-ons from this address. Try again shortly."})
 
@@ -105,8 +170,8 @@ class Handler(SimpleHTTPRequestHandler):
         if not garment or not name:
             return self._json(400, {"error": "garment and name are required"})
 
-        gpath = os.path.normpath(os.path.join(self.root, garment))
-        if not gpath.startswith(os.path.abspath(self.root)) or not os.path.exists(gpath):
+        gpath = os.path.normpath(os.path.join(root, garment))
+        if not gpath.startswith(root + os.sep) or not os.path.exists(gpath):
             return self._json(400, {"error": "unknown garment"})
 
         # The shopper photo: either an uploaded data URL, or the site default (D5/D8).
@@ -122,7 +187,7 @@ class Handler(SimpleHTTPRequestHandler):
                 f.write(base64.b64decode(b64))
             ppath = tmp
         else:
-            ppath = os.path.join(self.root, "assets", "shopper.jpg")
+            ppath = os.path.join(root, "assets", "shopper.jpg")
             if not os.path.exists(ppath):
                 return self._json(500, {"error": "no shopper photo configured"})
 
@@ -134,7 +199,7 @@ class Handler(SimpleHTTPRequestHandler):
                 env=self.env,
             )
         except Exception as e:
-            sys.stderr.write(f"[tryon] {e}\n")
+            sys.stderr.write(f"[tryon] {brand}: {e}\n")
             # Surface failure honestly. Never substitute a stand-in image (#41).
             return self._json(502, {"error": "Try-on generation failed. Please try again."})
         finally:
@@ -148,29 +213,38 @@ class Handler(SimpleHTTPRequestHandler):
         return self._json(200, {"imageUrl": "data:image/png;base64," + b64mod.b64encode(img).decode()})
 
     def log_message(self, fmt, *a):
-        if "/api/" in (a[0] if a else ""):
-            sys.stderr.write("%s - %s\n" % (self.client_address[0], fmt % a))
+        """Static hits are noise; try-on calls and errors are not (#42).
+
+        Must never assume the first arg is a string — the stdlib's error path
+        logs an HTTPStatus, and an exception here kills the connection, turning
+        every 404 into a dropped request.
+        """
+        line = fmt % a
+        if "/api/" in line or line.startswith("code "):
+            sys.stderr.write("%s - %s\n" % (self.client_ip(), line))
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--brand", default="barcelino")
     ap.add_argument("--port", type=int, default=8765)
+    ap.add_argument("--host", default="127.0.0.1",
+                    help="loopback by default; the reverse proxy is the only public face")
     a = ap.parse_args()
 
-    root = os.path.abspath(os.path.join(REPO, "sites", a.brand))
-    if not os.path.isdir(root):
-        sys.exit(f"no such site: {root}")
+    brands = sorted(d for d in os.listdir(SITES) if site_root(d))
+    if not brands:
+        sys.exit(f"no sites built yet under {SITES}")
 
     env = load_env()
     missing = [k for k in ("MUSE_API_BASE", "APP_API_KEY") if not env.get(k)]
     if missing:
-        sys.stderr.write(f"WARNING: missing {', '.join(missing)} — /api/tryon will 502\n")
+        sys.stderr.write(f"WARNING: missing {', '.join(missing)} — try-on will 502\n")
 
     Handler.env = env
-    Handler.root = root
-    srv = ThreadingHTTPServer(("127.0.0.1", a.port), Handler)
-    print(f"serving {a.brand} on http://localhost:{a.port}  (live try-on via /api/tryon)")
+    srv = ThreadingHTTPServer((a.host, a.port), Handler)
+    print(f"serving {len(brands)} site(s) on http://{a.host}:{a.port}/")
+    for b in brands:
+        print(f"  /{b}/")
     srv.serve_forever()
 
 
