@@ -34,6 +34,12 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # in muse-backend/src/types.ts).
 PRO_OVERRIDE_HEADER = "x-dev-pro-override-key"
 
+# The consent gate on /api/outfits/* reads this header name
+# (DEMO_CONSENT_HEADER in muse-backend/src/types.ts). The demo shows its own
+# consent screen before any upload; this carries that attestation, because a
+# storefront visitor has no Muse account to bind consent to.
+DEMO_CONSENT_HEADER = "x-demo-consent-key"
+
 
 def load_env(path=None):
     """Minimal .env reader. Env vars already set take precedence."""
@@ -46,7 +52,8 @@ def load_env(path=None):
                 continue
             k, _, v = line.partition("=")
             env[k.strip()] = v.strip().strip('"').strip("'")
-    for k in ("MUSE_API_BASE", "APP_API_KEY", "DEV_PRO_OVERRIDE_KEY"):
+    for k in ("MUSE_API_BASE", "APP_API_KEY", "DEV_PRO_OVERRIDE_KEY",
+              "DEMO_CONSENT_KEY"):
         if os.environ.get(k):
             env[k] = os.environ[k]
     return env
@@ -90,6 +97,8 @@ def generate_tryon(person_path, garment_path, garment_name, category="", notes="
     }
     if env.get("DEV_PRO_OVERRIDE_KEY"):
         headers[PRO_OVERRIDE_HEADER] = env["DEV_PRO_OVERRIDE_KEY"]
+    if env.get("DEMO_CONSENT_KEY"):
+        headers[DEMO_CONSENT_HEADER] = env["DEMO_CONSENT_KEY"]
 
     url = env["MUSE_API_BASE"].rstrip("/") + "/api/outfits/tryon"
     req = urllib.request.Request(url, data=body, headers=headers, method="POST")
