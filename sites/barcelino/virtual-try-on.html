@@ -282,21 +282,67 @@ body{padding-bottom:34px}
 .stage .fail{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   text-align:center;padding:0 40px;font-size:12.5px;color:#a8412f;line-height:1.7}
 
-/* Loading treatment — deliberately minimal. The only change to the frame is
-   that the outgoing look softens and recedes; the new one crossfades in over
-   it. No status text on the photography, no progress chrome. The wording lives
-   in the panel label, off the image.
+/* Loading treatment.
 
-   (The previous version stacked a cream veil UNDER .look, which has z-index:1,
-   while its text sat above it — so the phrase appeared stamped on an undimmed
-   photograph. That is what made it read as broken rather than loading.) */
+   The wait is ~16s, so the frame has to say it is working, and it has to say
+   so ON the frame — that is where the shopper is looking. Two ways this has
+   already gone wrong, and the treatment has to clear both at once:
+
+     1. A cream veil stacked UNDER .look (z-index:1) with its text above it.
+        The phrase came out stamped on undimmed photography: present, but not
+        readable, so the frame read as broken.
+     2. The correction for (1) took the wording off the frame entirely and
+        left a 10.5px gold caption above the panel — #a08a5e on #f7f5f2, about
+        3.1:1. On a cold start there is no previous look to blur, so the frame
+        was a flat empty rectangle with no visible sign of life at all.
+
+   So: the outgoing look still softens and recedes, but a veil now sits ABOVE
+   it (z-index 4 — being above .look is the entire lesson of bug 1) and carries
+   the status line on a ground of its own. tests/fitting-label.spec.js measures
+   the rendered pixels rather than the CSS, because both bugs looked correct in
+   the stylesheet.
+
+   Four treatments were built and photographed side by side before choosing
+   this one; they survive as overrides in tests/capture.js so the comparison
+   can be re-run. The frame washes to the panel's own cream and the status is
+   set in ink — 15.7:1 on an empty frame, 15.8:1 over a look, the highest of
+   the four, and the only one that reads as part of the boutique rather than
+   applied on top of it. A dark scrim or a dark plate both measure fine and
+   both look like something else's UI parked in the middle of a shop. */
 .stage.loading .look{filter:blur(13px) saturate(.86);opacity:.5;transform:scale(1.025)}
 .stage.loading .look-bg{opacity:.42;filter:blur(52px) saturate(.6) brightness(1.16)}
 
-.slabel .state{color:#a08a5e;opacity:0;transition:opacity .4s ease}
+/* Not fully opaque: the outgoing garment ghosts through, so the frame reads as
+   occupied rather than emptied while the next look is made. */
+.fitting{position:absolute;inset:0;z-index:4;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(247,245,242,.88);
+  -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+  opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .45s ease,visibility 0s linear .45s}
+/* pointer-events comes back with it: while a look is generating there is
+   nothing behind the veil worth clicking, and the expand button in particular
+   would open a lightbox onto the previous garment. */
+.stage.loading .fitting{opacity:1;visibility:visible;pointer-events:auto;
+  transition:opacity .45s ease,visibility 0s}
+.fitting .mark{display:flex;flex-direction:column;align-items:center;gap:15px}
+.fitting p{margin:0;font-size:11px;letter-spacing:.2em;color:#1c1a18;white-space:nowrap}
+/* A hairline passing across the frame, the way a fitting is measured. Slow
+   enough to read as attention rather than as a spinner. */
+.fitting .sweep{width:132px;height:1px;background:rgba(28,26,24,.16);
+  position:relative;overflow:hidden}
+.fitting .sweep::after{content:"";position:absolute;top:0;left:0;width:48px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  animation:fittingsweep 2.1s cubic-bezier(.55,0,.45,1) infinite}
+@keyframes fittingsweep{
+  0%{transform:translateX(-48px)}
+  100%{transform:translateX(132px)}}
+@media (prefers-reduced-motion:reduce){
+  .fitting .sweep::after{animation:none;left:42px;width:48px}}
+
+/* The caption stays "THE LOOK" throughout. It used to swap to the status
+   phrase, which now shows the same words twice at once. */
 .slabel .rest{transition:opacity .4s ease}
-.slabel.busy .rest{opacity:0}
-.slabel.busy .state{opacity:1}
 
 .rail-tabs{display:flex;justify-content:space-between;gap:10px;margin-top:16px;padding-right:2px;
   border-bottom:1px solid #eceae7;overflow-x:auto;scrollbar-width:none}
@@ -958,11 +1004,17 @@ body{padding-bottom:34px}
 
     <!-- THE LOOK -->
     <div class="pcard">
-      <div class="slabel" id="lookLabel"><span class="rest">THE LOOK</span><span class="state" style="position:absolute;left:0;right:0">PREPARING YOUR FITTING</span></div>
+      <div class="slabel" id="lookLabel"><span class="rest">THE LOOK</span></div>
       <div class="stage" id="stage">
         <img class="look-bg" id="lookbg" alt="" aria-hidden="true" hidden>
         <img class="look" id="look" alt="" hidden>
         <div class="fail" id="fail" hidden></div>
+        <div class="fitting" id="fitting" role="status" aria-live="polite">
+          <div class="mark">
+            <div class="sweep"></div>
+            <p data-fitting-status>PREPARING YOUR FITTING</p>
+          </div>
+        </div>
         <button class="expand" id="expand" aria-label="View larger">
           <svg viewBox="0 0 24 24"><path d="M9 4H4v5M15 4h5v5M15 20h5v-5M9 20H4v-5"/></svg>
         </button>
@@ -1464,11 +1516,10 @@ $('file').onchange=e=>{
 };
 
 /* ---------------- loading treatment ----------------
-   Toggles a class on the stage and swaps the panel label. Deliberately no
-   text over the image and no percentage — the frame stays a campaign shot. */
+   One class on the stage; the rest is CSS. No percentage — the call gives us
+   no progress to report, and a fake bar is worse than an honest hairline. */
 function veil(on){
   $('stage').classList.toggle('loading', !!on);
-  $('lookLabel').classList.toggle('busy', !!on);
 }
 
 /* ---------------- generation ---------------- */
