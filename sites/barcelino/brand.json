@@ -2,6 +2,11 @@
   "$schema": "../../docs/brand-profile.schema.md",
   "schema_version": 1,
 
+  "demo": {
+    "landing": "virtual-try-on.html",
+    "landing_note": "muse.fashion/barcelino opens the Virtual Try-On page rather than the PDP clone (index.html). The PDP is still reachable at /barcelino/index.html and still carries its own studio hooks."
+  },
+
   "identity": {
     "name": "Barcelino",
     "legal_name": "Barcelino Continental Corp.",

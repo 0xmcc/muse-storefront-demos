@@ -15,6 +15,8 @@ a deployment — otherwise forty prospects means forty servers to run and forget
     → http://localhost:8765/barcelino/
 
 Endpoints:
+    GET  /<brand>/             the brand's landing page — index.html unless its
+                               brand.json declares {"demo": {"landing": "..."}}
     GET  /<brand>/*            static files from sites/<brand>/
     POST /<brand>/api/tryon    {personDataUrl?, garment: "assets/catalog/x.jpg", name, category?}
                             -> {"imageUrl": "data:image/png;base64,..."}
@@ -103,6 +105,40 @@ def site_root(brand):
     return root
 
 
+_landings = {}
+
+def landing_page(brand):
+    """Which file `/<brand>/` serves.
+
+    Defaults to index.html — the clone of the retailer's own page, which is the
+    right answer when the demo is "your site, plus one nav item". A brand whose
+    demo link should open straight into the try-on instead declares it:
+
+        "demo": { "landing": "virtual-try-on.html" }
+
+    in its brand.json. Kept per-brand rather than hardcoded because one process
+    serves every boutique (D23), and served directly rather than redirected so
+    the link stays muse.fashion/<brand> — the short URL is the one that gets
+    pasted into an email.
+    """
+    if brand in _landings:
+        return _landings[brand]
+    page = "index.html"
+    root = site_root(brand)
+    if root:
+        try:
+            with open(os.path.join(root, "brand.json"), encoding="utf-8") as fh:
+                want = (json.load(fh).get("demo") or {}).get("landing")
+            # Must be a plain filename that exists: never a path out of the site.
+            if want and "/" not in want and ".." not in want \
+                    and os.path.isfile(os.path.join(root, want)):
+                page = want
+        except (OSError, ValueError):
+            pass
+    _landings[brand] = page
+    return page
+
+
 class Handler(SimpleHTTPRequestHandler):
     env = {}
 
@@ -119,7 +155,7 @@ class Handler(SimpleHTTPRequestHandler):
         root = site_root(brand)
         if root is None:
             return NO_SUCH_PATH
-        full = os.path.normpath(os.path.join(root, rest or "index.html"))
+        full = os.path.normpath(os.path.join(root, rest or landing_page(brand)))
         if full != root and not full.startswith(root + os.sep):
             return NO_SUCH_PATH
         return full
