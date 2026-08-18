@@ -74,6 +74,88 @@ LOOPBACK = {"127.0.0.1", "::1"}
 NO_SUCH_PATH = os.path.join(SITES, "__no_such_site__")
 
 
+# ---------------------------------------------------------------- prompts --
+#
+# The wording sent with every generation, editable from the studio and kept as
+# versions. Versions exist because "does this look more like me?" is a question
+# you can only answer by comparing two, so saving never overwrites: it appends,
+# and `active` is a pointer.
+#
+# Stored per brand, next to the site it belongs to, so a boutique stays a
+# folder (D23). Guarded by STUDIO_KEY: this is a public demo with live
+# generation behind it, and an open prompt box is an open cheque.
+
+PROMPTS_FILE = "prompts.json"
+STUDIO_HEADER = "x-studio-key"
+_prompt_lock = threading.Lock()
+
+
+def prompts_path(brand):
+    root = site_root(brand)
+    return os.path.join(root, PROMPTS_FILE) if root else None
+
+
+def load_prompts(brand):
+    """The brand's prompt store, seeded from the house style on first run.
+
+    Seeding rather than starting empty matters: version one is then the exact
+    wording the demo has been generating with all along, which is the baseline
+    every later edit gets compared against.
+    """
+    path = prompts_path(brand)
+    if not path:
+        return None
+    try:
+        with open(path, encoding="utf-8") as fh:
+            store = json.load(fh)
+        if store.get("versions"):
+            return store
+    except (OSError, ValueError):
+        pass
+
+    seed = {
+        "id": new_version_id(),
+        "label": "House editorial (built in)",
+        "notes": EDITORIAL_NOTES,
+        "created": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+    store = {"active": seed["id"], "versions": [seed]}
+    write_prompts(brand, store)
+    return store
+
+
+def new_version_id():
+    import uuid
+    return uuid.uuid4().hex[:12]
+
+
+def write_prompts(brand, store):
+    """Write through a temp file in the same directory, then rename.
+
+    A half-written prompts.json would take the demo down on the next request,
+    and rename is the only step that is atomic on POSIX.
+    """
+    path = prompts_path(brand)
+    if not path:
+        return
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(store, fh, indent=2, ensure_ascii=False)
+        fh.write("\n")
+    os.replace(tmp, path)
+
+
+def active_notes(brand):
+    """The wording a generation should actually use."""
+    store = load_prompts(brand)
+    if not store:
+        return EDITORIAL_NOTES
+    for v in store["versions"]:
+        if v["id"] == store.get("active"):
+            return v["notes"]
+    return EDITORIAL_NOTES
+
+
 def rate_ok(ip):
     now = time.time()
     with _lock:
@@ -142,6 +224,18 @@ def landing_page(brand):
 class Handler(SimpleHTTPRequestHandler):
     env = {}
 
+    def studio_authorized(self):
+        """Does this request hold the studio key?
+
+        False whenever STUDIO_KEY is unset, so a deployment that has not opted
+        in cannot have an owner surface at all. Compared with compare_digest so
+        a wrong key leaks nothing through timing.
+        """
+        import hmac
+        want = self.env.get("STUDIO_KEY") or os.environ.get("STUDIO_KEY") or ""
+        got = self.headers.get(STUDIO_HEADER) or ""
+        return bool(want) and hmac.compare_digest(want, got)
+
     def client_ip(self):
         peer = self.client_address[0]
         if peer in LOOPBACK:
@@ -167,6 +261,15 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         brand, rest = split_path(self.path)
+
+        # The owner surface. 404 rather than 401 when unauthorised: a demo sent
+        # to forty boutiques should not advertise that there is a door here.
+        if rest == "api/prompt" and site_root(brand):
+            if not self.studio_authorized():
+                return self.send_error(404)
+            with _prompt_lock:
+                return self._json(200, load_prompts(brand))
+
         # "/barcelino" must become "/barcelino/", or every relative asset URL on
         # the page resolves one level too high and the site loads bare.
         if brand and not rest and site_root(brand):
@@ -185,10 +288,29 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _body(self):
+        try:
+            n = int(self.headers.get("content-length", 0))
+            return json.loads(self.rfile.read(n) or b"{}")
+        except Exception:
+            return None
+
     def do_POST(self):
         brand, rest = split_path(self.path)
         root = site_root(brand)
-        if root is None or rest != "api/tryon":
+        if root is None:
+            return self._json(404, {"error": "not found"})
+
+        if rest in ("api/prompt", "api/prompt/activate"):
+            if not self.studio_authorized():
+                return self.send_error(404)
+            req = self._body()
+            if req is None:
+                return self._json(400, {"error": "bad json"})
+            return (self._prompt_save(brand, req) if rest == "api/prompt"
+                    else self._prompt_activate(brand, req))
+
+        if rest != "api/tryon":
             return self._json(404, {"error": "not found"})
 
         ip = self.client_ip()
@@ -205,6 +327,16 @@ class Handler(SimpleHTTPRequestHandler):
         name = req.get("name") or ""
         if not garment or not name:
             return self._json(400, {"error": "garment and name are required"})
+
+        # A caller-supplied prompt is an owner action, not a shopper one. This
+        # used to be `notes=req.get("notes", EDITORIAL_NOTES)`, which let anyone
+        # who found the endpoint spend real generation money on any wording they
+        # liked. Refused before anything is generated, so an attempt costs
+        # nothing. With the key, it is how you preview an edit before saving it.
+        override = req.get("notes")
+        if override is not None and not self.studio_authorized():
+            return self._json(400, {"error": "notes is not accepted on this endpoint"})
+        notes = override if override else active_notes(brand)
 
         gpath = os.path.normpath(os.path.join(root, garment))
         if not gpath.startswith(root + os.sep) or not os.path.exists(gpath):
@@ -231,7 +363,7 @@ class Handler(SimpleHTTPRequestHandler):
             img = generate_tryon(
                 ppath, gpath, name,
                 category=req.get("category", ""),
-                notes=req.get("notes", EDITORIAL_NOTES),
+                notes=notes,
                 env=self.env,
             )
         except Exception as e:
@@ -248,6 +380,43 @@ class Handler(SimpleHTTPRequestHandler):
         import base64 as b64mod
         return self._json(200, {"imageUrl": "data:image/png;base64," + b64mod.b64encode(img).decode()})
 
+    def _prompt_save(self, brand, req):
+        """Append a version. Never mutates an existing one — that is the point.
+
+        The whole reason for versions is being able to go back to the wording
+        that produced a better likeness, which an in-place edit destroys.
+        """
+        notes = (req.get("notes") or "").strip()
+        if not notes:
+            return self._json(400, {"error": "notes cannot be empty"})
+
+        label = (req.get("label") or "").strip() or "Untitled"
+        version = {
+            "id": new_version_id(),
+            "label": label[:120],
+            "notes": notes,
+            "created": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }
+        # Read-modify-write under the lock, or two concurrent saves each write
+        # a store built from the same snapshot and one of them vanishes.
+        with _prompt_lock:
+            store = load_prompts(brand)
+            store["versions"].append(version)
+            if req.get("activate"):
+                store["active"] = version["id"]
+            write_prompts(brand, store)
+        return self._json(200, version)
+
+    def _prompt_activate(self, brand, req):
+        want = req.get("id")
+        with _prompt_lock:
+            store = load_prompts(brand)
+            if not any(v["id"] == want for v in store["versions"]):
+                return self._json(400, {"error": "no such version"})
+            store["active"] = want
+            write_prompts(brand, store)
+        return self._json(200, {"active": want})
+
     def log_message(self, fmt, *a):
         """Static hits are noise; try-on calls and errors are not (#42).
 
@@ -261,11 +430,18 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def main():
+    global SITES, NO_SUCH_PATH
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--host", default="127.0.0.1",
                     help="loopback by default; the reverse proxy is the only public face")
+    ap.add_argument("--sites", default=SITES,
+                    help="site tree to serve; the tests point this at a throwaway "
+                         "copy so a run cannot rewrite the live prompt store")
     a = ap.parse_args()
+
+    SITES = os.path.abspath(a.sites)
+    NO_SUCH_PATH = os.path.join(SITES, "__no_such_site__")
 
     brands = sorted(d for d in os.listdir(SITES) if site_root(d))
     if not brands:

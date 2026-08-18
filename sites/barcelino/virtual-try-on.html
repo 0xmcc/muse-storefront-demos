@@ -344,6 +344,51 @@ body{padding-bottom:34px}
    phrase, which now shows the same words twice at once. */
 .slabel .rest{transition:opacity .4s ease}
 
+/* Prompt studio — owner only, and injected by JS, so none of this is reachable
+   for a prospect. Deliberately plain: it is a workbench, not part of the
+   boutique, and dressing it up would only make it harder to read a long prompt
+   against the version that came before it. */
+.promptbtn{position:absolute;top:22px;left:22px;z-index:6;
+  background:none;border:1px solid var(--border);border-radius:2px;
+  padding:5px 11px;font-size:10px;letter-spacing:.14em;color:#86827d;
+  cursor:pointer;transition:border-color .2s,color .2s}
+.promptbtn:hover{border-color:#1c1a18;color:#1c1a18}
+.promptpanel{position:absolute;inset:0;z-index:120;background:rgba(20,19,18,.5);
+  display:flex;align-items:center;justify-content:center;padding:28px}
+.promptpanel[hidden]{display:none}
+.pp-card{background:#fff;width:100%;max-width:660px;max-height:100%;overflow:auto;
+  padding:26px 28px;display:flex;flex-direction:column;gap:13px;
+  box-shadow:0 24px 60px rgba(0,0,0,.22)}
+.pp-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
+.pp-head h3{margin:0;font-family:var(--font-display);font-size:17px;font-weight:400}
+.pp-x{background:none;border:0;font-size:19px;line-height:1;color:#86827d;cursor:pointer;padding:2px 6px}
+.pp-x:hover{color:#1c1a18}
+.pp-sub{margin:0;font-size:12px;line-height:1.65;color:#86827d}
+#promptNotes{width:100%;resize:vertical;padding:12px 13px;
+  border:1px solid var(--border);border-radius:2px;background:#fbfaf9;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.7;color:#1c1a18}
+#promptNotes:focus{outline:none;border-color:#a08a5e}
+.pp-err{margin:0;font-size:12px;color:#a8412f}
+.pp-err[hidden]{display:none}
+.pp-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#promptLabel{flex:1;min-width:170px;padding:9px 11px;border:1px solid var(--border);
+  border-radius:2px;font-size:12.5px;color:#1c1a18}
+#promptLabel:focus{outline:none;border-color:#a08a5e}
+.pp-chk{display:flex;align-items:center;gap:6px;font-size:11.5px;color:#6e6a65;white-space:nowrap}
+.pp-save{padding:9px 15px;border:1px solid #1c1a18;background:#1c1a18;color:#fff;
+  font-size:10.5px;letter-spacing:.13em;cursor:pointer}
+.pp-save:hover{background:#332f2b}
+.pp-versions{display:flex;flex-direction:column;border-top:1px solid var(--border);margin-top:3px}
+.pp-v{display:flex;align-items:center;gap:11px;padding:9px 0;
+  border-bottom:1px solid #f2f0ed;font-size:12.5px}
+.pp-vlabel{flex:1;color:#1c1a18}
+.pp-v time{font-size:11px;color:#a5a09a;font-variant-numeric:tabular-nums}
+.pp-live{font-size:9.5px;letter-spacing:.13em;color:#a08a5e;border:1px solid #a08a5e;
+  border-radius:2px;padding:2px 6px}
+.pp-use{background:none;border:1px solid var(--border);border-radius:2px;
+  padding:3px 10px;font-size:10.5px;letter-spacing:.08em;color:#6e6a65;cursor:pointer}
+.pp-use:hover{border-color:#1c1a18;color:#1c1a18}
+
 .rail-tabs{display:flex;justify-content:space-between;gap:10px;margin-top:16px;padding-right:2px;
   border-bottom:1px solid #eceae7;overflow-x:auto;scrollbar-width:none}
 .rail-tabs::-webkit-scrollbar{display:none}
@@ -1597,6 +1642,147 @@ render();
   /* capture hooks go straight to the studio so screenshots aren't gated */
   if(q.get('fitting')){ openStudio(); setTimeout(()=>veil(true),300); }
   else if(q.get('studio')) openStudio();
+})();
+
+/* ---------------- prompt studio (owner only) ----------------
+   The wording sent with every generation, and its version history.
+
+   Nothing here is in the page until the SERVER confirms the key. A build that
+   shipped the panel and merely hid it would still hand every prospect who
+   opens devtools a prompt box with live generation behind it, so the markup is
+   injected after /api/prompt answers 200 and not before. The page decides
+   nothing about authorisation on its own.
+
+   The key arrives once as ?prompt_key=… and is moved straight into
+   sessionStorage: leaving it in the address bar loses it to the first
+   screen-share, pasted link or browser history sync. */
+(function(){
+  const STORE='muse.demo.studiokey';
+  const q=new URLSearchParams(location.search);
+
+  const fromUrl=q.get('prompt_key');
+  if(fromUrl){
+    try{ sessionStorage.setItem(STORE,fromUrl); }catch(e){}
+    q.delete('prompt_key');
+    const rest=q.toString();
+    history.replaceState(null,'',location.pathname+(rest?'?'+rest:'')+location.hash);
+  }
+  let key=''; try{ key=sessionStorage.getItem(STORE)||''; }catch(e){}
+  if(!key) return;
+
+  const hdr={'x-studio-key':key};
+  const api=(p,opt)=>fetch('api/prompt'+p,Object.assign({headers:hdr},opt||{}));
+
+  let store=null;
+
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  function mount(){
+    const studio=document.querySelector('.studio');
+    if(!studio) return;
+
+    const btn=document.createElement('button');
+    btn.className='promptbtn'; btn.id='promptOpen';
+    btn.setAttribute('data-prompt-open','');
+    btn.textContent='PROMPT';
+    studio.insertBefore(btn,studio.firstChild);
+
+    const panel=document.createElement('div');
+    panel.className='promptpanel'; panel.id='promptPanel';
+    panel.setAttribute('data-prompt-panel','');
+    panel.hidden=true;
+    panel.innerHTML=
+      '<div class="pp-card" role="dialog" aria-label="Generation prompt">'+
+        '<div class="pp-head"><h3>Generation prompt</h3>'+
+          '<button class="pp-x" id="promptClose" aria-label="Close">&#215;</button></div>'+
+        '<p class="pp-sub">Sent with every look. Saving keeps the current wording as a version '+
+          'rather than replacing it, so you can go back to the one that looked most like you.</p>'+
+        '<textarea id="promptNotes" data-prompt-notes spellcheck="false" rows="11"></textarea>'+
+        '<p class="pp-err" id="promptErr" hidden></p>'+
+        '<div class="pp-row">'+
+          '<input id="promptLabel" data-prompt-label placeholder="Name this version">'+
+          '<label class="pp-chk"><input type="checkbox" id="promptGoLive"> Make live</label>'+
+          '<button class="pp-save" id="promptSave" data-prompt-save>SAVE AS VERSION</button>'+
+        '</div>'+
+        '<div class="pp-versions" id="promptVersions"></div>'+
+      '</div>';
+    studio.appendChild(panel);
+
+    btn.addEventListener('click',open);
+    $('promptClose').addEventListener('click',close);
+    $('promptSave').addEventListener('click',save);
+    panel.addEventListener('click',e=>{ if(e.target===panel) close(); });
+
+    /* Capture phase: the studio has its own Escape handler, and without
+       stopping propagation here one keypress would close both. */
+    document.addEventListener('keydown',e=>{
+      if(e.key==='Escape' && !panel.hidden){ e.stopPropagation(); close(); }
+    },true);
+  }
+
+  const open =()=>{ $('promptPanel').hidden=false; $('promptNotes').focus(); };
+  const close=()=>{ $('promptPanel').hidden=true; };
+
+  function fail(msg){
+    const el=$('promptErr');
+    el.textContent=msg; el.hidden=!msg;
+  }
+
+  function render(){
+    const active=store.versions.find(v=>v.id===store.active);
+    if(document.activeElement!==$('promptNotes')) $('promptNotes').value=active?active.notes:'';
+    $('promptVersions').innerHTML=store.versions.slice().reverse().map(v=>{
+      const live=v.id===store.active;
+      return '<div class="pp-v" data-prompt-version data-active="'+(live?'true':'false')+'">'+
+        '<span class="pp-vlabel">'+esc(v.label)+'</span>'+
+        '<time>'+esc((v.created||'').replace('T',' ').replace('Z',''))+'</time>'+
+        (live?'<span class="pp-live">LIVE</span>'
+             :'<button class="pp-use" data-use="'+esc(v.id)+'">Use</button>')+
+      '</div>';
+    }).join('');
+    $('promptVersions').querySelectorAll('[data-use]').forEach(b=>
+      b.addEventListener('click',()=>activate(b.getAttribute('data-use'))));
+  }
+
+  async function refresh(){
+    const r=await api('');
+    if(!r.ok) return false;
+    store=await r.json();
+    render();
+    return true;
+  }
+
+  async function save(){
+    fail('');
+    const notes=$('promptNotes').value;
+    if(!notes.trim()){ fail('A prompt cannot be empty.'); return; }
+    const r=await api('',{method:'POST',
+      headers:Object.assign({'content-type':'application/json'},hdr),
+      body:JSON.stringify({label:$('promptLabel').value,notes:notes,
+                           activate:$('promptGoLive').checked})});
+    if(!r.ok){ fail('Could not save. '+((await r.json().catch(()=>({}))).error||'')); return; }
+    $('promptLabel').value=''; $('promptGoLive').checked=false;
+    await refresh();
+  }
+
+  async function activate(id){
+    fail('');
+    const r=await api('/activate',{method:'POST',
+      headers:Object.assign({'content-type':'application/json'},hdr),
+      body:JSON.stringify({id:id})});
+    if(!r.ok){ fail('Could not switch version.'); return; }
+    /* Let the newly live wording replace whatever is in the box. */
+    $('promptNotes').blur();
+    await refresh();
+  }
+
+  /* The server is the gate: a 404 here means no key, and nothing mounts. */
+  api('').then(async r=>{
+    if(!r.ok) return;
+    store=await r.json();
+    mount();
+    render();
+  }).catch(()=>{});
 })();
 
 

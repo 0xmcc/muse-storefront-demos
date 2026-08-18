@@ -5,3 +5,8 @@ node_modules/
 .env
 __pycache__/
 *.pyc
+
+# Runtime prompt store. Seeded from EDITORIAL_NOTES on first run and edited
+# live from the studio, so a deploy must never carry a stale copy over the
+# versions Marko has saved on the server.
+sites/*/prompts.json
