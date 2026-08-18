@@ -1653,21 +1653,28 @@ render();
    injected after /api/prompt answers 200 and not before. The page decides
    nothing about authorisation on its own.
 
-   The key arrives once as ?prompt_key=… and is moved straight into
-   sessionStorage: leaving it in the address bar loses it to the first
-   screen-share, pasted link or browser history sync. */
+   The key arrives once as ?prompt_key=… and is moved straight out of the URL:
+   leaving it in the address bar loses it to the first screen-share, pasted
+   link or browser history sync.
+
+   localStorage, not sessionStorage. sessionStorage is per-tab, so the key
+   disappeared the moment you opened muse.fashion/barcelino in a second tab —
+   which is how you actually come back to a demo. The cost is that the key sits
+   on the machine until cleared; that is the right trade for an owner tool on
+   the owner's own laptop. To hand the machine over:
+   localStorage.removeItem('muse.demo.studiokey'). */
 (function(){
   const STORE='muse.demo.studiokey';
   const q=new URLSearchParams(location.search);
 
   const fromUrl=q.get('prompt_key');
   if(fromUrl){
-    try{ sessionStorage.setItem(STORE,fromUrl); }catch(e){}
+    try{ localStorage.setItem(STORE,fromUrl); }catch(e){}
     q.delete('prompt_key');
     const rest=q.toString();
     history.replaceState(null,'',location.pathname+(rest?'?'+rest:'')+location.hash);
   }
-  let key=''; try{ key=sessionStorage.getItem(STORE)||''; }catch(e){}
+  let key=''; try{ key=localStorage.getItem(STORE)||''; }catch(e){}
   if(!key) return;
 
   const hdr={'x-studio-key':key};

@@ -43,6 +43,23 @@ test.describe("prompt panel", () => {
     await expect(page.locator(OPEN)).toHaveCount(0);
   });
 
+  test("the key survives opening the demo in a new tab", async ({ context }) => {
+    /* sessionStorage is per-tab, so a key stored there vanishes the moment you
+       open muse.fashion/barcelino in a second tab — which is how anyone
+       actually returns to a demo. The key has to outlive the tab that carried
+       it in. */
+    const first = await context.newPage();
+    await first.route("**/api/tryon", () => {});
+    await first.goto(`${APP}/${BRAND}/virtual-try-on.html?studio=1&prompt_key=${encodeURIComponent(KEY)}`);
+    await expect(first.locator(OPEN)).toBeVisible({ timeout: 15_000 });
+
+    const second = await context.newPage();
+    await second.route("**/api/tryon", () => {});
+    await second.goto(`${APP}/${BRAND}/virtual-try-on.html?studio=1`);
+    await expect(second.locator(OPEN),
+      "a second tab with no key in the URL still belongs to the owner").toBeVisible({ timeout: 15_000 });
+  });
+
   test("the key is not left in the address bar", async ({ page }) => {
     /* Otherwise the first screen-share or pasted link leaks it. */
     await openStudioAs(page, KEY);
