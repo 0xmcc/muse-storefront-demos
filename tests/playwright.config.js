@@ -20,6 +20,13 @@ module.exports = defineConfig({
   },
   webServer: [
     {
+      command: "node stub-backend.js",
+      url: "http://127.0.0.1:8797/",
+      reuseExistingServer: false,
+      stdout: "ignore",
+      env: { PORT: "8797" },
+    },
+    {
       command:
         "python3 -m http.server 8799 --bind 127.0.0.1 --directory ../sites/barcelino",
       url: "http://127.0.0.1:8799/virtual-try-on.html",
@@ -36,10 +43,13 @@ module.exports = defineConfig({
         // The owner surface is off unless a key is configured, so tests must
         // supply one. Never a real key: this is the value the specs send.
         STUDIO_KEY: "test-studio-key-do-not-ship-0000000000",
-        // Keeps serve.py from warning about credentials it will not use —
-        // no spec here reaches the real generator.
-        MUSE_API_BASE: "http://127.0.0.1:9/unused",
+        // Points at tests/stub-backend.js, never the real generator, so the
+        // prompt-capture path can run end to end for free.
+        MUSE_API_BASE: "http://127.0.0.1:8797",
         APP_API_KEY: "unused-in-tests",
+        // Every spec calls from 127.0.0.1, so they share one visitor's budget
+        // under the real per-IP cap and would 429 partway through the run.
+        DEMO_RATE_MAX: "500",
       },
     },
   ],

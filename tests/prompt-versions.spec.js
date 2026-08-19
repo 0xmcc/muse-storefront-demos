@@ -105,7 +105,7 @@ test.describe("prompt versions — reading", () => {
        version one is a real baseline rather than an empty box. Checked as
        "a version carries it" rather than "the active one does", because other
        specs in this file change which version is live. */
-    const seeded = body.versions.some((v) => v.notes.includes("Preserve the person"));
+    const seeded = body.versions.some((v) => (v.notes || "").includes("Preserve the person"));
     expect(seeded, "the built-in house style must be version one").toBe(true);
   });
 
@@ -114,8 +114,12 @@ test.describe("prompt versions — reading", () => {
     for (const v of body.versions) {
       expect(v.id, "id").toBeTruthy();
       expect(typeof v.label, "label").toBe("string");
-      expect(typeof v.notes, "notes").toBe("string");
       expect(Date.parse(v.created), "created must be a real timestamp").not.toBeNaN();
+      /* Either kind is a version: a notes fragment appended to the backend's
+         assembly, or a full template replacing it. Both must be rollable. */
+      const body_ = v.template ?? v.notes;
+      expect(typeof body_, `version ${v.id} must carry notes or a template`).toBe("string");
+      expect(body_.length).toBeGreaterThan(0);
     }
   });
 });

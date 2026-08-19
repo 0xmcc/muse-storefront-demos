@@ -364,6 +364,22 @@ body{padding-bottom:34px}
 .pp-x{background:none;border:0;font-size:19px;line-height:1;color:#86827d;cursor:pointer;padding:2px 6px}
 .pp-x:hover{color:#1c1a18}
 .pp-sub{margin:0;font-size:12px;line-height:1.65;color:#86827d}
+.pp-h{margin:6px 0 0;font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+  color:#1c1a18;display:flex;align-items:baseline;gap:9px}
+.pp-h span{font-size:10px;letter-spacing:.08em;text-transform:none;color:#a5a09a;font-weight:400}
+/* The assembled prompt is a <pre>: it is read-only because it is composed in
+   muse-backend, and an editable box here would promise an edit the storefront
+   cannot deliver. */
+.pp-full{width:100%;resize:vertical;margin:0;padding:12px 13px;
+  border:1px solid var(--border);border-radius:2px;background:#f4f2ef;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;
+  line-height:1.65;color:#3a3733}
+.pp-full:focus{outline:none;border-color:#a08a5e;background:#fbfaf9}
+.pp-hint{font-size:11px;color:#a5a09a}
+.pp-sub code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;
+  background:#f0eeeb;border:1px solid var(--border);border-radius:2px;padding:0 4px}
+.pp-vlabel em{font-style:normal;font-size:10px;letter-spacing:.06em;color:#a5a09a;
+  text-transform:uppercase;margin-left:7px}
 #promptNotes{width:100%;resize:vertical;padding:12px 13px;
   border:1px solid var(--border);border-radius:2px;background:#fbfaf9;
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.7;color:#1c1a18}
@@ -1699,12 +1715,17 @@ render();
     panel.setAttribute('data-prompt-panel','');
     panel.hidden=true;
     panel.innerHTML=
-      '<div class="pp-card" role="dialog" aria-label="Generation prompt">'+
-        '<div class="pp-head"><h3>Generation prompt</h3>'+
+      '<div class="pp-card" role="dialog" aria-label="Prompt studio">'+
+        '<div class="pp-head"><h3>Prompt studio</h3>'+
           '<button class="pp-x" id="promptClose" aria-label="Close">&#215;</button></div>'+
-        '<p class="pp-sub">Sent with every look. Saving keeps the current wording as a version '+
-          'rather than replacing it, so you can go back to the one that looked most like you.</p>'+
-        '<textarea id="promptNotes" data-prompt-notes spellcheck="false" rows="11"></textarea>'+
+
+        '<h4 class="pp-h">Extra styling notes <span>editable</span></h4>'+
+        '<p class="pp-sub">This is the only part the storefront controls. It is appended near '+
+          'the end of the prompt, after the identity and product-fidelity rules, introduced as '+
+          '&ldquo;Extra styling notes:&rdquo; and closed with &ldquo;Honor these where '+
+          'reasonable&rdquo; &mdash; so it carries less weight than the rules above it. '+
+          'Saving keeps the current wording as a version rather than replacing it.</p>'+
+        '<textarea id="promptNotes" data-prompt-notes spellcheck="false" rows="9"></textarea>'+
         '<p class="pp-err" id="promptErr" hidden></p>'+
         '<div class="pp-row">'+
           '<input id="promptLabel" data-prompt-label placeholder="Name this version">'+
@@ -1712,12 +1733,31 @@ render();
           '<button class="pp-save" id="promptSave" data-prompt-save>SAVE AS VERSION</button>'+
         '</div>'+
         '<div class="pp-versions" id="promptVersions"></div>'+
+
+        '<h4 class="pp-h">Full prompt <span>editable</span> <span id="promptFullAt"></span></h4>'+
+        '<p class="pp-sub">The whole thing, including the identity and product-fidelity rules. '+
+          'Editing this replaces what muse-backend would otherwise assemble. Keep '+
+          '<code>{{ITEMS}}</code> where the garment for each look should go &mdash; it is '+
+          'filled in per generation, so a saved prompt is not pinned to one product. '+
+          '<code>{{IMAGE_INSTRUCTION}}</code> works the same way for which photo is which. '+
+          'Starts from the last real generation, so you are editing the actual wording.</p>'+
+        '<textarea class="pp-full" id="promptFull" data-prompt-full spellcheck="false" rows="14"></textarea>'+
+        '<div class="pp-row">'+
+          '<button class="pp-use" id="promptReset" type="button">Reset to the backend default</button>'+
+          '<span class="pp-hint" id="promptMode"></span>'+
+        '</div>'+
       '</div>';
     studio.appendChild(panel);
 
     btn.addEventListener('click',open);
     $('promptClose').addEventListener('click',close);
     $('promptSave').addEventListener('click',save);
+    $('promptReset').addEventListener('click',()=>{
+      /* Back to what muse-backend would build on its own. Not a save — you
+         still have to version it, and every earlier version stays put. */
+      $('promptFull').value = store.capturedTemplate || '';
+      $('promptFull').focus();
+    });
     panel.addEventListener('click',e=>{ if(e.target===panel) close(); });
 
     /* Capture phase: the studio has its own Escape handler, and without
@@ -1736,12 +1776,31 @@ render();
   }
 
   function render(){
+    const last=store.lastSent;
+    $('promptFullAt').textContent = last && last.at
+      ? 'last sent '+last.at.replace('T',' ').replace('Z',' UTC') : 'not captured yet';
+
     const active=store.versions.find(v=>v.id===store.active);
-    if(document.activeElement!==$('promptNotes')) $('promptNotes').value=active?active.notes:'';
+
+    /* The box holds whichever prompt is live: an authored template if one is,
+       otherwise the backend's own assembly with its slots left open, which is
+       exactly what editing it would start from. */
+    const liveTemplate = active && active.template;
+    if(document.activeElement!==$('promptFull')){
+      $('promptFull').value = liveTemplate || store.capturedTemplate ||
+        'Run a try-on and reopen this panel to load the real prompt.';
+    }
+    $('promptMode').textContent = liveTemplate
+      ? 'a saved prompt is live'
+      : 'the backend default is live';
+
+    if(document.activeElement!==$('promptNotes'))
+      $('promptNotes').value = (active && active.notes) || '';
     $('promptVersions').innerHTML=store.versions.slice().reverse().map(v=>{
       const live=v.id===store.active;
       return '<div class="pp-v" data-prompt-version data-active="'+(live?'true':'false')+'">'+
-        '<span class="pp-vlabel">'+esc(v.label)+'</span>'+
+        '<span class="pp-vlabel">'+esc(v.label)+
+          (v.template?' <em>full prompt</em>':' <em>notes</em>')+'</span>'+
         '<time>'+esc((v.created||'').replace('T',' ').replace('Z',''))+'</time>'+
         (live?'<span class="pp-live">LIVE</span>'
              :'<button class="pp-use" data-use="'+esc(v.id)+'">Use</button>')+
@@ -1761,12 +1820,26 @@ render();
 
   async function save(){
     fail('');
+    const template=$('promptFull').value.trim();
     const notes=$('promptNotes').value;
-    if(!notes.trim()){ fail('A prompt cannot be empty.'); return; }
+    const baseline=(store.versions.find(v=>v.id===store.active)||{}).template
+                   || store.capturedTemplate || '';
+
+    /* Saving the full prompt only when it has actually been touched keeps the
+       two boxes from fighting: an untouched prompt box would otherwise pin the
+       backend default into a version every time a note was edited. */
+    const editedFull = template && template!==baseline.trim();
+    if(!editedFull && !notes.trim()){ fail('A prompt cannot be empty.'); return; }
+    if(editedFull && template.indexOf('{{ITEMS}}')===-1){
+      fail('Keep {{ITEMS}} — it is where each look\'s garment goes.'); return;
+    }
+
+    const payload={label:$('promptLabel').value,activate:$('promptGoLive').checked};
+    if(editedFull) payload.template=template; else payload.notes=notes;
+
     const r=await api('',{method:'POST',
       headers:Object.assign({'content-type':'application/json'},hdr),
-      body:JSON.stringify({label:$('promptLabel').value,notes:notes,
-                           activate:$('promptGoLive').checked})});
+      body:JSON.stringify(payload)});
     if(!r.ok){ fail('Could not save. '+((await r.json().catch(()=>({}))).error||'')); return; }
     $('promptLabel').value=''; $('promptGoLive').checked=false;
     await refresh();

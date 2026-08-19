@@ -40,6 +40,15 @@ PRO_OVERRIDE_HEADER = "x-dev-pro-override-key"
 # storefront visitor has no Muse account to bind consent to.
 DEMO_CONSENT_HEADER = "x-demo-consent-key"
 
+# Opt-in echo of the assembled prompt (see the tryon route in muse-backend).
+INCLUDE_PROMPT_HEADER = "x-include-prompt"
+
+# Authority to replace the prompt outright, and to read it back. Deliberately
+# separate from APP_API_KEY: that key ships inside the mobile app and can be
+# extracted, so it must not be enough to strip the identity rules out of a
+# generation. The backend ignores both the template and the echo without this.
+PROMPT_OVERRIDE_HEADER = "x-prompt-override-key"
+
 
 def load_env(path=None):
     """Minimal .env reader. Env vars already set take precedence."""
@@ -53,7 +62,7 @@ def load_env(path=None):
             k, _, v = line.partition("=")
             env[k.strip()] = v.strip().strip('"').strip("'")
     for k in ("MUSE_API_BASE", "APP_API_KEY", "DEV_PRO_OVERRIDE_KEY",
-              "DEMO_CONSENT_KEY"):
+              "DEMO_CONSENT_KEY", "PROMPT_OVERRIDE_KEY"):
         if os.environ.get(k):
             env[k] = os.environ[k]
     return env
@@ -74,7 +83,8 @@ def to_data_url(path):
         return f"data:{mime};base64,{base64.b64encode(f.read()).decode()}"
 
 
-def generate_tryon(person_path, garment_path, garment_name, category="", notes="", env=None):
+def generate_tryon(person_path, garment_path, garment_name, category="", notes="",
+                   template=None, env=None):
     """Return PNG/JPEG bytes of the try-on composite. Raises RuntimeError on failure."""
     env = env or load_env()
     missing = [k for k in ("MUSE_API_BASE", "APP_API_KEY") if not env.get(k)]
@@ -89,12 +99,23 @@ def generate_tryon(person_path, garment_path, garment_name, category="", notes="
             "imageUrl": to_data_url(garment_path),   # D11: data URL, never a remote URL
         }],
         "notes": notes,
+        # A full prompt authored in the studio, replacing the backend's own
+        # assembly. Omitted entirely when absent, so the default path is
+        # byte-identical to before.
+        **({"promptTemplate": template} if template else {}),
     }).encode()
 
     headers = {
         "content-type": "application/json",
         "x-app-key": env["APP_API_KEY"],
+        # Ask the backend to echo the prompt it assembled. The studio shows the
+        # real thing rather than the `notes` fragment sent from here, and
+        # reconstructing the rest locally would drift the moment the backend
+        # changed. Opt-in header, so app traffic is unaffected.
+        INCLUDE_PROMPT_HEADER: "1",
     }
+    if env.get("PROMPT_OVERRIDE_KEY"):
+        headers[PROMPT_OVERRIDE_HEADER] = env["PROMPT_OVERRIDE_KEY"]
     if env.get("DEV_PRO_OVERRIDE_KEY"):
         headers[PRO_OVERRIDE_HEADER] = env["DEV_PRO_OVERRIDE_KEY"]
     if env.get("DEMO_CONSENT_KEY"):
@@ -108,10 +129,15 @@ def generate_tryon(person_path, garment_path, garment_name, category="", notes="
     except urllib.error.HTTPError as e:
         raise RuntimeError(f"HTTP {e.code}: {e.read()[:300].decode('utf-8', 'ignore')}")
 
-    data_url = (payload.get("data") or {}).get("imageUrl")
+    data = payload.get("data") or {}
+    data_url = data.get("imageUrl")
     if not data_url or "base64," not in data_url:
         raise RuntimeError(f"No image in response: {str(payload)[:300]}")
-    return base64.b64decode(data_url.split("base64,", 1)[1])
+    img = base64.b64decode(data_url.split("base64,", 1)[1])
+    # Also returns the prompt the backend actually sent, and the same prompt
+    # with its per-request slots left open — the starting point for an edit.
+    # Both are None on a deployment that predates the echo.
+    return img, data.get("prompt"), data.get("promptTemplate")
 
 
 def main():
@@ -125,7 +151,7 @@ def main():
     a = ap.parse_args()
 
     try:
-        img = generate_tryon(a.person, a.garment, a.name, a.category, a.notes)
+        img, _prompt, _tpl = generate_tryon(a.person, a.garment, a.name, a.category, a.notes)
     except Exception as e:
         # Fail loudly and write nothing. A missing frame renders an honest
         # "TRY-ON FRAME PENDING" placeholder; a wrong frame ships forever (#41).

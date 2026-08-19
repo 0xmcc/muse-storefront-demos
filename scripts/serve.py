@@ -58,8 +58,11 @@ EDITORIAL_NOTES = (
 )
 
 # Public demo, live generation, real money per call. Cap it per IP (#44).
-# D15a: this cap is Marko's to change, not a build's.
-RATE_MAX = 12
+# D15a: this cap is Marko's to change, not a build's — hence an env var rather
+# than a constant a deploy could quietly raise. The test suite sets it, because
+# every spec calls from 127.0.0.1 and would otherwise share one visitor's
+# budget and start seeing 429s partway through a run.
+RATE_MAX = int(os.environ.get("DEMO_RATE_MAX") or 12)
 RATE_WINDOW_S = 600
 _hits = defaultdict(deque)
 _lock = threading.Lock()
@@ -145,15 +148,61 @@ def write_prompts(brand, store):
     os.replace(tmp, path)
 
 
-def active_notes(brand):
-    """The wording a generation should actually use."""
+def record_last_sent(brand, text, template=None):
+    """Remember the prompt muse-backend assembled for the most recent look.
+
+    The studio shows this, not the notes fragment. Deliberately a RECORD of the
+    last real request rather than a live rendering: the demo has no business
+    knowing how the backend composes its master directive, and a local copy of
+    that would go stale silently the first time the backend changed. Showing
+    "captured at <time>" is honest about what it is.
+
+    Only the newest is kept. This is a window onto the current behaviour, not
+    an audit log, and prompts.json is read on every generation.
+    """
+    with _prompt_lock:
+        store = load_prompts(brand)
+        if store is None:
+            return
+        store["lastSent"] = {
+            "text": text,
+            "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }
+        # The same prompt with the per-request slots left open. This is what an
+        # edit starts from, so version one of a template is the real wording
+        # rather than something retyped out of a screenshot.
+        if template:
+            store["capturedTemplate"] = template
+        write_prompts(brand, store)
+
+
+ITEMS_SLOT = "{{ITEMS}}"
+
+
+def active_version(brand):
     store = load_prompts(brand)
     if not store:
-        return EDITORIAL_NOTES
+        return None
     for v in store["versions"]:
         if v["id"] == store.get("active"):
-            return v["notes"]
-    return EDITORIAL_NOTES
+            return v
+    return None
+
+
+def active_prompt(brand):
+    """What the live version contributes: (notes, template).
+
+    A version carries EITHER a template — the whole prompt, authored here and
+    replacing the backend's assembly — or notes, the fragment appended to it.
+    Both kinds coexist because the early versions predate templates, and losing
+    the ability to roll back to one would defeat the point of versioning.
+    """
+    v = active_version(brand)
+    if not v:
+        return EDITORIAL_NOTES, None
+    if v.get("template"):
+        return "", v["template"]
+    return v.get("notes") or EDITORIAL_NOTES, None
 
 
 def rate_ok(ip):
@@ -336,7 +385,9 @@ class Handler(SimpleHTTPRequestHandler):
         override = req.get("notes")
         if override is not None and not self.studio_authorized():
             return self._json(400, {"error": "notes is not accepted on this endpoint"})
-        notes = override if override else active_notes(brand)
+        notes, template = active_prompt(brand)
+        if override:
+            notes, template = override, None
 
         gpath = os.path.normpath(os.path.join(root, garment))
         if not gpath.startswith(root + os.sep) or not os.path.exists(gpath):
@@ -360,12 +411,20 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._json(500, {"error": "no shopper photo configured"})
 
         try:
-            img = generate_tryon(
+            img, sent_prompt, offered_template = generate_tryon(
                 ppath, gpath, name,
                 category=req.get("category", ""),
                 notes=notes,
+                template=template,
                 env=self.env,
             )
+            # Record what Gemini was actually given, so the studio can show the
+            # real prompt instead of the notes fragment sent from here. Recorded
+            # rather than reconstructed: this file has no business knowing how
+            # muse-backend assembles its master directive, and a local copy
+            # would go stale silently.
+            if sent_prompt:
+                record_last_sent(brand, sent_prompt, offered_template)
         except Exception as e:
             sys.stderr.write(f"[tryon] {brand}: {e}\n")
             # Surface failure honestly. Never substitute a stand-in image (#41).
@@ -386,17 +445,30 @@ class Handler(SimpleHTTPRequestHandler):
         The whole reason for versions is being able to go back to the wording
         that produced a better likeness, which an in-place edit destroys.
         """
+        template = (req.get("template") or "").strip()
         notes = (req.get("notes") or "").strip()
-        if not notes:
+        if not template and not notes:
             return self._json(400, {"error": "notes cannot be empty"})
+
+        # A template replaces the backend's whole assembly, so it must still say
+        # which garment to use. Without the slot the model is never told, and
+        # every look quietly becomes something invented — a failure that looks
+        # like a bad prompt rather than a missing one. Refuse the save instead.
+        if template and ITEMS_SLOT not in template:
+            return self._json(400, {
+                "error": "A full prompt must keep the {{ITEMS}} slot — it is where "
+                         "the garment for each look is inserted."})
 
         label = (req.get("label") or "").strip() or "Untitled"
         version = {
             "id": new_version_id(),
             "label": label[:120],
-            "notes": notes,
             "created": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
+        if template:
+            version["template"] = template
+        else:
+            version["notes"] = notes
         # Read-modify-write under the lock, or two concurrent saves each write
         # a store built from the same snapshot and one of them vanishes.
         with _prompt_lock:
